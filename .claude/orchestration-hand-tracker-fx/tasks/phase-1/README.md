@@ -101,7 +101,7 @@ If any of the above is missing, return to Phase 0 before running Phase 1 Ralph.
 
 These bite more than once across Phase 1 — read them on entry, not just from individual task files.
 
-- **`--grep` escape**: Every L4 run uses `pnpm test:e2e -- --grep "Task N.M:"`. The describe block MUST start with EXACTLY `Task N.M:` (colon included). `--grep "Task 1"` without the dot over-matches future Phase 10+. The regression task uses `--grep "Task 1\\."` (escaped dot) to union the six Phase 1 specs.
+- **`--grep` escape**: Every L4 run uses `pnpm test:e2e --grep "Task N.M:"`. The describe block MUST start with EXACTLY `Task N.M:` (colon included). `--grep "Task 1"` without the dot over-matches future Phase 10+. The regression task uses `--grep "Task 1\\."` (escaped dot) to union the six Phase 1 specs.
 - **StrictMode double-mount**: React 19 dev runs every `useEffect` twice. Every cleanup must be idempotent: `tracks.forEach(t => t.stop())`, `video.cancelVideoFrameCallback(id)`, `cancelAnimationFrame(id)`, `videoRef.srcObject = null`. This bites 1.2 (camera open twice), 1.4 (GPU context leak from double `.close()`), 1.5 (double rVFC registration), 1.6 (double srcObject assign — benign but noisy).
 - **Mirror semantics (D27)**: Landmark coordinate space is ALWAYS unmirrored. CSS `transform: scaleX(-1)` is applied ONLY to the display canvases in 1.6. Never mirror the `<video>` element. Never apply `1 - x` corrections to landmarks. 1.2 captures raw pixels; 1.4 inferences on raw pixels; 1.5 carries raw landmarks in `FrameContext`; 1.6 mirrors the composited output only.
 - **`pnpm` only**: CI uses `pnpm/action-setup@v4` reading the version from `packageManager` in `package.json`. A stray `npm install` generates a `package-lock.json` that breaks every later agent's `pnpm install --frozen-lockfile`. If you see `package-lock.json` in the working tree, delete it and check .gitignore.
@@ -122,7 +122,7 @@ Every task in this phase ships all 4 validation levels. Scoped commands:
 - **L1**: `pnpm lint <paths> && pnpm typecheck` → zero errors
 - **L2**: `pnpm vitest run <unit-test-file>` → all tests pass
 - **L3**: `pnpm build` (or targeted integration script) → exits 0
-- **L4**: `pnpm test:e2e -- --grep "Task 1.N:"` → the single Phase 1 spec for this task passes
+- **L4**: `pnpm test:e2e --grep "Task 1.N:"` → the single Phase 1 spec for this task passes
 
 The regression task (1.R) runs all four against a fresh `pnpm build && pnpm preview` plus a manual Playwright MCP walkthrough. The Ralph loop self-heals until all four exit 0.
 
@@ -171,8 +171,8 @@ Read on phase entry, re-read per-task as the task file directs:
 - All 7 task files emit `<promise>COMPLETE</promise>` from the Ralph loop
 - `pnpm check` exits 0 on a clean checkout from `main`
 - `pnpm build && pnpm preview` serves :4173 with COOP/COEP/CSP/Permissions-Policy/Referrer-Policy headers
-- `pnpm test:e2e -- --grep "Task 1\\."` passes 6/6 Phase 1 specs
-- `pnpm test:e2e -- --grep "Task 1.R:"` passes the 10-second soak spec
+- `pnpm test:e2e --grep "Task 1\\."` passes 6/6 Phase 1 specs
+- `pnpm test:e2e --grep "Task 1.R:"` passes the 10-second soak spec
 - Playwright MCP walkthrough: `PROMPT → GRANTED`, `window.__handTracker.getFPS() > 0` after 3 s warmup, `getLandmarkCount() >= 0`, zero console errors, zero unhandled rejections
 - `scripts/check-headers.sh http://localhost:4173` exits 0
 - `reports/phase-1-regression.md` + `reports/phase-1-regression-granted.png` committed

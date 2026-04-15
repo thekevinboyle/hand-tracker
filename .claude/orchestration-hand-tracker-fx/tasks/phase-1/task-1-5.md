@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/engine/renderLoop.ts`, `src/engine/types.ts`, `src/engine/devHooks.ts`, `src/engine/renderLoop.test.ts`, and an E2E test asserting `__handTracker.getFPS() > 0` under fake-device playback.
 
-**Success Definition**: `pnpm vitest run src/engine` exits 0 with fake-video + fake-rVFC shim tests; `pnpm test:e2e -- --grep "Task 1.5:"` shows `getFPS()` > 0 within 5s warmup.
+**Success Definition**: `pnpm vitest run src/engine` exits 0 with fake-video + fake-rVFC shim tests; `pnpm test:e2e --grep "Task 1.5:"` shows `getFPS()` > 0 within 5s warmup.
 
 ---
 
@@ -515,7 +515,7 @@ Task 7: CREATE tests/e2e/renderLoop.spec.ts
   - MIRROR: .claude/skills/playwright-e2e-webcam/SKILL.md §FPS assertion (lines 192–200)
   - NAMING: describe EXACTLY `Task 1.5: renderLoop`
   - GOTCHA: First model load on cold CI can be 20–35s; generous timeout on the waitForFunction
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.5:"
+  - VALIDATE: pnpm test:e2e --grep "Task 1.5:"
 ```
 
 ### Integration Points
@@ -566,7 +566,7 @@ Expected: exits 0; `dist/assets/index-*.js` contains the dev-hook registration (
 
 ```bash
 pnpm test:setup
-pnpm test:e2e -- --grep "Task 1.5:"
+pnpm test:e2e --grep "Task 1.5:"
 ```
 
 Expected: one test passes — `getFPS() > 0` after 3s sample. Cold runs may take up to 60s for the first landmark due to model fetch + wasm compile.

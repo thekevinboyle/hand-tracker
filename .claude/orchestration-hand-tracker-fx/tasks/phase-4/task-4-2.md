@@ -377,7 +377,7 @@ pnpm build
 ### Level 4 — E2E (optional; satisfied by Task 4.R)
 
 ```bash
-pnpm test:e2e -- --grep "Task 4.2:"
+pnpm test:e2e --grep "Task 4.2:"
 ```
 
 If no Playwright test exists with that grep, mark L4 N/A and rely on Task 4.R regression.

@@ -116,7 +116,7 @@ pnpm vitest run <unit-test-file>
 pnpm build
 
 # Level 4 — E2E (Playwright with --use-fake-device-for-media-stream)
-pnpm test:e2e -- --grep "Task N.M:"
+pnpm test:e2e --grep "Task N.M:"
 ```
 
 Rules:
@@ -253,7 +253,7 @@ pnpm vitest run
 pnpm build
 
 # L4
-pnpm test:e2e -- --grep "Task N.M:"
+pnpm test:e2e --grep "Task N.M:"
 ```
 
 ### Step d — Diagnose + FIX root cause (not a bypass)

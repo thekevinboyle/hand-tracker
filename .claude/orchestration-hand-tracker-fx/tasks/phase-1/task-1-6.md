@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/ui/Stage.tsx`, `src/ui/Stage.css`, `src/ui/Stage.test.tsx`, and an integration in `App.tsx` that renders `<Stage>` in the `GRANTED` branch and passes refs up to the render loop wiring added in Task 1.5.
 
-**Success Definition**: `pnpm vitest run src/ui/Stage.test.tsx` passes; `pnpm test:e2e -- --grep "Task 1.6:"` verifies both canvases are present, the video is ARIA-hidden, and the mirror transform toggles correctly.
+**Success Definition**: `pnpm vitest run src/ui/Stage.test.tsx` passes; `pnpm test:e2e --grep "Task 1.6:"` verifies both canvases are present, the video is ARIA-hidden, and the mirror transform toggles correctly.
 
 ---
 
@@ -463,7 +463,7 @@ Task 5: CREATE tests/e2e/stage.spec.ts
   - MIRROR: tests/e2e/renderLoop.spec.ts (Task 1.5)
   - NAMING: describe EXACTLY `Task 1.6: Stage`
   - GOTCHA: `toBeVisible()` on the stage works because the wrapper has non-zero size; canvases inherit `display: block` + full size
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.6:"
+  - VALIDATE: pnpm test:e2e --grep "Task 1.6:"
 ```
 
 ### Integration Points
@@ -511,7 +511,7 @@ Expected: exits 0; `dist/assets/index-*.css` contains the `.stage` rules.
 
 ```bash
 pnpm test:setup
-pnpm test:e2e -- --grep "Task 1.6:"
+pnpm test:e2e --grep "Task 1.6:"
 ```
 
 Expected: one test passes — stage visible, canvases non-zero, video ARIA-hidden, srcObject attached.

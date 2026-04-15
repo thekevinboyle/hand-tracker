@@ -305,7 +305,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 4.1:"
+pnpm test:e2e --grep "Task 4.1:"
 ```
 
 Assertion: (No dedicated E2E for a pure utility. If no test exists with that grep, mark L4 as N/A in Progress Log and note the `--grep` returned 0. L4 is satisfied by Task 4.R regression.)

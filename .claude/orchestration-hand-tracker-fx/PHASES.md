@@ -75,7 +75,7 @@ All at `.claude/skills/<name>/SKILL.md`. Execution agents MUST read the relevant
 | **context7 MCP** | Live library docs lookup (MediaPipe, ogl, Tweakpane, Vite) | `resolve-library-id`, `query-docs` |
 | Biome | Lint + format + organize imports | `pnpm lint`, `pnpm lint:fix` |
 | Vitest | Unit tests (L2) | `pnpm test`, `pnpm test:watch` |
-| Playwright CLI | E2E (L4) | `pnpm test:e2e -- --grep "Task N.M:"` |
+| Playwright CLI | E2E (L4) | `pnpm test:e2e --grep "Task N.M:"` |
 | pnpm | Package + script runner | `pnpm install`, `pnpm <script>` |
 | ffmpeg | Y4M fake-webcam synthesis for E2E | `pnpm test:setup` |
 | Vercel CLI (future) | Deploy + link | `vercel link`, `vercel --prod` |
@@ -92,7 +92,7 @@ Every task file MUST include all four levels. The Ralph loop runs them in order 
 | **L1 Syntax & Style** | Biome + tsc | `pnpm lint && pnpm typecheck` | Zero errors before any other check |
 | **L2 Unit** | Vitest | `pnpm vitest run <paths>` | Pure logic correctness — geometry, modulation, preset (de)serialization, error reducer |
 | **L3 Integration** | Vite build / component test / node script | Task-specific (`pnpm build`, `pnpm test path/to/integration.test.ts`) | Cross-module wiring, build-time checks |
-| **L4 E2E** | Playwright + fake webcam | `pnpm test:e2e -- --grep "Task N.M:"` | User-emulating flows, `crossOriginIsolated` check, FPS floor, visual elements |
+| **L4 E2E** | Playwright + fake webcam | `pnpm test:e2e --grep "Task N.M:"` | User-emulating flows, `crossOriginIsolated` check, FPS floor, visual elements |
 
 Phase-regression tasks (Task N.R) run **all four levels** on a fresh `pnpm preview` build, plus manual visual verification against the reference screenshot via Playwright MCP.
 Final-phase tasks run **all four levels** against the Vercel preview URL (`PLAYWRIGHT_BASE_URL` env var).
@@ -136,7 +136,7 @@ Final-phase tasks run **all four levels** against the Vercel preview URL (`PLAYW
   - L1: `pnpm lint && pnpm typecheck`
   - L2: existing `src/App.test.tsx` passes
   - L3: `pnpm build` exits 0
-  - L4: `pnpm test:e2e -- --grep "Task 1.1:"`
+  - L4: `pnpm test:e2e --grep "Task 1.1:"`
 - **Skills**: `hand-tracker-fx-architecture`, `prp-task-ralph-loop`, `vite-vercel-coop-coep`, `playwright-e2e-webcam`
 
 ### Task 1.2: useCamera hook (8-state machine)
@@ -161,7 +161,7 @@ Final-phase tasks run **all four levels** against the Vercel preview URL (`PLAYW
   - L1: `pnpm lint src/camera src/camera/*.ts && pnpm typecheck`
   - L2: `pnpm vitest run src/camera` (mock `navigator.mediaDevices`)
   - L3: N/A (no build-time check beyond L1)
-  - L4: `pnpm test:e2e -- --grep "Task 1.2:"` (PROMPT → GRANTED happy path)
+  - L4: `pnpm test:e2e --grep "Task 1.2:"` (PROMPT → GRANTED happy path)
 - **Skills**: `webcam-permissions-state-machine`, `vitest-unit-testing-patterns`, `prp-task-ralph-loop`
 
 ### Task 1.3: Error-state UI + pre-prompt card

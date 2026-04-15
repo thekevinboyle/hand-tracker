@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/effects/handTrackingMosaic/render.ts` (new) exporting `initMosaicEffect(gl, texture)`, `updateMosaicUniforms`, `packRegions`. `src/effects/handTrackingMosaic/render.test.ts` (new) with tests for `packRegions` buffer-view semantics and `updateMosaicUniforms` with a stubbed `Program`. `src/effects/handTrackingMosaic/manifest.ts` (modified) — `create()` returns a real `EffectInstance`.
 
-**Success Definition**: `pnpm vitest run src/effects/handTrackingMosaic/render.test.ts` exits 0; `pnpm build` exits 0; `pnpm test:e2e -- --grep "Task 3.4:"` passes the "mosaic visible inside polygon" pixel-sample assertion; manual `pnpm preview` with a real hand in frame shows the reference-screenshot mosaic effect.
+**Success Definition**: `pnpm vitest run src/effects/handTrackingMosaic/render.test.ts` exits 0; `pnpm build` exits 0; `pnpm test:e2e --grep "Task 3.4:"` passes the "mosaic visible inside polygon" pixel-sample assertion; manual `pnpm preview` with a real hand in frame shows the reference-screenshot mosaic effect.
 
 ---
 
@@ -79,7 +79,7 @@
 - [ ] `pnpm tsc --noEmit` exits 0
 - [ ] `pnpm vitest run src/effects/handTrackingMosaic/render.test.ts` exits 0
 - [ ] `pnpm build` exits 0
-- [ ] `pnpm test:e2e -- --grep "Task 3.4:"` exits 0 — asserts a non-original pixel in the expected mosaic region when a fake landmark payload is injected
+- [ ] `pnpm test:e2e --grep "Task 3.4:"` exits 0 — asserts a non-original pixel in the expected mosaic region when a fake landmark payload is injected
 - [ ] Manual `pnpm preview`: holding a real hand in front of the webcam shows the mosaic snapping onto the hand region, mosaic tile size changing with `mosaic.tileSize` slider in Tweakpane
 - [ ] `window.__handTracker.getLastRegionCount()` returns > 0 when a hand is detected
 
@@ -419,7 +419,7 @@ Task 6: CREATE tests/e2e/task-3-4.spec.ts
   - NAMING: `Task 3.4:` prefix
   - GOTCHA: readPixels requires preserveDrawingBuffer: true (set in Task 3.1)
   - GOTCHA: Use a deterministic fake landmark payload — the bundled testsrc2 y4m doesn't contain a detectable hand by default
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.4:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.4:"
 ```
 
 ### Integration Points
@@ -472,7 +472,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 3.4:"
+pnpm test:e2e --grep "Task 3.4:"
 ```
 
 ---

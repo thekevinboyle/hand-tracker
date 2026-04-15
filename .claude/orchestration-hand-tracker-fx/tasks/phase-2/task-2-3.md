@@ -427,7 +427,7 @@ Expected: exits 0. `src/effects/` must be reachable from any entry point — con
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 2.3:"
+pnpm test:e2e --grep "Task 2.3:"
 ```
 
 Expected: `tests/e2e/grid-overlay.spec.ts` with `test.describe('Task 2.3: grid overlay', ...)`:

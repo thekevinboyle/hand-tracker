@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/tracking/handLandmarker.ts`, `src/tracking/errors.ts`, `src/tracking/handLandmarker.test.ts` with mocked `@mediapipe/tasks-vision`; dispose function does NOT call `close()` on every unmount (GPU freeze bug #5718).
 
-**Success Definition**: `pnpm vitest run src/tracking` exits 0; `pnpm test:e2e -- --grep "Task 1.4:"` verifies `window.__handTracker.getLandmarkCount()` is a number (0 or 21) after model load against a live `<video>` element on `pnpm preview`.
+**Success Definition**: `pnpm vitest run src/tracking` exits 0; `pnpm test:e2e --grep "Task 1.4:"` verifies `window.__handTracker.getLandmarkCount()` is a number (0 or 21) after model load against a live `<video>` element on `pnpm preview`.
 
 ---
 
@@ -70,7 +70,7 @@
 - [ ] GPU init is attempted first; falls back to CPU on non-webgl errors.
 - [ ] WebGL errors throw `WebGLUnavailableError`; other errors throw `ModelLoadError`.
 - [ ] `pnpm vitest run src/tracking` — all tests pass with `vi.mock('@mediapipe/tasks-vision')`.
-- [ ] `pnpm test:e2e -- --grep "Task 1.4:"` — model loads successfully under Playwright; `getLandmarkCount()` is a number ≥ 0.
+- [ ] `pnpm test:e2e --grep "Task 1.4:"` — model loads successfully under Playwright; `getLandmarkCount()` is a number ≥ 0.
 
 ---
 
@@ -437,7 +437,7 @@ Task 4: CREATE tests/e2e/handLandmarker.spec.ts
   - MIRROR: tests/e2e/smoke.spec.ts
   - NAMING: describe EXACTLY `Task 1.4: handLandmarker`
   - GOTCHA: This task does NOT wire init into the app (Task 1.5 does that). The E2E asserts only that the module is buildable and the dev hook exists after at least one import. Full landmark-count assertion happens in Task 1.5's E2E.
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.4:"
+  - VALIDATE: pnpm test:e2e --grep "Task 1.4:"
 ```
 
 ### Integration Points
@@ -489,7 +489,7 @@ Expected: exits 0; `dist/assets/mediapipe-*.js` chunk is present (manualChunks s
 
 ```bash
 pnpm test:setup
-pnpm test:e2e -- --grep "Task 1.4:"
+pnpm test:e2e --grep "Task 1.4:"
 ```
 
 Expected: one test passes — the `ready` evaluator returns a boolean. Full landmark-count assertion is Task 1.5's.

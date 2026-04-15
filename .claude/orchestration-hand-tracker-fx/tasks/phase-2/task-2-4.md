@@ -447,7 +447,7 @@ Expected: exits 0. `blobRenderer.ts` imports `Landmark` type only — tree-shake
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 2.4:"
+pnpm test:e2e --grep "Task 2.4:"
 ```
 
 Expected: `tests/e2e/blob-overlay.spec.ts` with `test.describe('Task 2.4: landmark blobs', ...)`:

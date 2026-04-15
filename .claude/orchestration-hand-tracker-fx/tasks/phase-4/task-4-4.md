@@ -313,7 +313,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 4.4:"
+pnpm test:e2e --grep "Task 4.4:"
 ```
 
 Playwright test asserts:

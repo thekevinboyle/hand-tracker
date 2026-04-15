@@ -22,7 +22,7 @@
 - `reports/phase-2-walkthrough/step-06-webgl-black.png` — WebGL canvas still clears to black (no mosaic, as designed for Phase 2)
 - `reports/phase-2-regression.md` — summary report with validation matrix, D-number coverage table, and ship/fix decision
 
-**Success Definition**: `pnpm check && pnpm build && pnpm preview` (preview in background) + `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 2.R:"` all exit 0. All 6 walkthrough screenshots exist and are non-empty. `reports/phase-2-regression.md` is filled in with every checklist row PASS (or explicit FAIL with a linked hotfix task). The project can move to Phase 3 with confidence that the engine/overlay contract is stable.
+**Success Definition**: `pnpm check && pnpm build && pnpm preview` (preview in background) + `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 2.R:"` all exit 0. All 6 walkthrough screenshots exist and are non-empty. `reports/phase-2-regression.md` is filled in with every checklist row PASS (or explicit FAIL with a linked hotfix task). The project can move to Phase 3 with confidence that the engine/overlay contract is stable.
 
 ---
 
@@ -111,8 +111,8 @@ Non-visual assertions:
 - [ ] `pnpm vitest run` exits 0 (all Phase 1–2 unit tests)
 - [ ] `pnpm build` exits 0
 - [ ] `pnpm preview` serves the production build with correct COOP/COEP headers
-- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task"` exits 0 (every Phase 1–2 E2E spec passes against the preview build)
-- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 2.R:"` exits 0
+- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task"` exits 0 (every Phase 1–2 E2E spec passes against the preview build)
+- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 2.R:"` exits 0
 - [ ] All 6 `reports/phase-2-walkthrough/step-*.png` files exist and are non-empty
 - [ ] `reports/phase-2-regression.md` exists with every checklist row marked PASS or explicit FAIL-with-hotfix-link
 - [ ] `listEffects()` returns `['handTrackingMosaic']` — verified via dev hook in the spec
@@ -595,8 +595,8 @@ Task 4: CREATE reports/phase-2-regression.md (Ralph fills this in AFTER L1–L4 
       | L1 | pnpm tsc --noEmit | PASS |
       | L2 | pnpm vitest run | PASS (M/M tests) |
       | L3 | pnpm build | PASS |
-      | L4 | PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task" | PASS (N specs, Phase 1–2 aggregate) |
-      | L4 | PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 2.R:" | PASS (K specs) |
+      | L4 | PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task" | PASS (N specs, Phase 1–2 aggregate) |
+      | L4 | PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 2.R:" | PASS (K specs) |
 
       ## Phase 2 Task Status
       | Task | Title | L1 | L2 | L3 | L4 |
@@ -684,8 +684,8 @@ Task 6: Regression run orchestration (this is the Ralph loop's run order)
       6. pnpm test:setup   # regenerates tests/assets/fake-hand.y4m if missing
       7. VITE_DEV_HOOKS=1 pnpm preview &   # background, port 4173
          (Ralph uses Bash run_in_background for this step; sleep 3 before L4)
-      8. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task"
-      9. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 2.R:"
+      8. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task"
+      9. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 2.R:"
      10. (optional) Playwright MCP walkthrough per Task 5
      11. Kill preview process
      12. Fill in reports/phase-2-regression.md
@@ -762,10 +762,10 @@ Expected: the production build exits 0, `pnpm preview` prints `Local: http://loc
 
 ```bash
 # Full Phase 1–2 aggregate regression against the preview
-PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task"
+PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task"
 
 # Task 2.R specifically
-PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 2.R:"
+PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 2.R:"
 ```
 
 Expected: both invocations exit 0. Phase 1 + Phase 2 specs are covered by the first (broad `--grep "Task"`), the Task 2.R spec is the narrow gate.
@@ -796,8 +796,8 @@ Expected: both invocations exit 0. Phase 1 + Phase 2 specs are covered by the fi
 - [ ] `pnpm vitest run` — all tests pass (Phase 1 + Phase 2 aggregate)
 - [ ] `VITE_DEV_HOOKS=1 pnpm build` — production build succeeds
 - [ ] `curl -I http://localhost:4173/` returns `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`
-- [ ] `pnpm test:e2e -- --grep "Task"` — all Phase 1–2 specs pass against preview
-- [ ] `pnpm test:e2e -- --grep "Task 2.R:"` — regression spec passes
+- [ ] `pnpm test:e2e --grep "Task"` — all Phase 1–2 specs pass against preview
+- [ ] `pnpm test:e2e --grep "Task 2.R:"` — regression spec passes
 
 ### Feature
 

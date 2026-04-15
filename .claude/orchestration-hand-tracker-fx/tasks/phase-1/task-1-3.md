@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/ui/ErrorStates.tsx`, `src/ui/PrePromptCard.tsx`, `src/ui/errorCopy.ts`, `src/ui/ErrorStates.test.tsx`, and a minimal integration in `App.tsx` that switches the UI on the `CameraState` returned from Task 1.2's hook.
 
-**Success Definition**: `pnpm vitest run src/ui/ErrorStates.test.tsx` exits 0 with each of the 8 states rendering its dedicated copy; `pnpm test:e2e -- --grep "Task 1.3:"` verifies the PROMPT card renders on first load under a synthetic `permissions.query='prompt'` context.
+**Success Definition**: `pnpm vitest run src/ui/ErrorStates.test.tsx` exits 0 with each of the 8 states rendering its dedicated copy; `pnpm test:e2e --grep "Task 1.3:"` verifies the PROMPT card renders on first load under a synthetic `permissions.query='prompt'` context.
 
 ---
 
@@ -72,7 +72,7 @@
 - [ ] `NO_WEBGL` card has NO retry button; all others do (except `GRANTED`/`PROMPT` which route to PrePromptCard's Allow button).
 - [ ] `App.tsx` switches based on state — `GRANTED` keeps scaffold (for now), `PROMPT` shows PrePromptCard, everything else shows ErrorStates.
 - [ ] `pnpm vitest run src/ui` passes.
-- [ ] `pnpm test:e2e -- --grep "Task 1.3:"` passes (visibility of PrePrompt or GRANTED transition).
+- [ ] `pnpm test:e2e --grep "Task 1.3:"` passes (visibility of PrePrompt or GRANTED transition).
 
 ---
 
@@ -421,7 +421,7 @@ Task 8: CREATE tests/e2e/errorStates.spec.ts
     NOTE: A PROMPT-path E2E is hard to force in Chromium fake mode (which auto-grants). Unit tests cover PROMPT; E2E only covers the GRANTED branch + ErrorStates-null correctness.
   - MIRROR: tests/e2e/smoke.spec.ts
   - NAMING: describe EXACTLY `Task 1.3: error states`
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.3:"
+  - VALIDATE: pnpm test:e2e --grep "Task 1.3:"
 ```
 
 ### Integration Points
@@ -471,7 +471,7 @@ Expected: exits 0.
 
 ```bash
 pnpm test:setup
-pnpm test:e2e -- --grep "Task 1.3:"
+pnpm test:e2e --grep "Task 1.3:"
 ```
 
 Expected: one test passes — state reaches GRANTED under fake device; no `[role="alert"]` element present.

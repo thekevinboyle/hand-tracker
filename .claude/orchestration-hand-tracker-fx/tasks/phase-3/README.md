@@ -67,7 +67,7 @@ External dependencies (already complete):
 
 ## Definition of Done for Phase 3
 
-- [ ] All six task files have all four validation levels green: `pnpm biome check src/`, `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm build`, `pnpm test:e2e -- --grep "Task 3."`
+- [ ] All six task files have all four validation levels green: `pnpm biome check src/`, `pnpm tsc --noEmit`, `pnpm vitest run`, `pnpm build`, `pnpm test:e2e --grep "Task 3."`
 - [ ] `pnpm preview` served build visibly shows the mosaic effect inside the hand-bounded polygon
 - [ ] Side-by-side screenshot comparison artifact at `reports/phase-3-visual-composite.png` ticks the checklist in task-3-R.md
 - [ ] No console errors, no unhandled rejections, no WebGL warnings in dev tools

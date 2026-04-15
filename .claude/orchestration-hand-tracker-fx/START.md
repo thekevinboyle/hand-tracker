@@ -42,7 +42,7 @@ You are executing Task N.M for Hand Tracker FX in Ralph-loop mode.
    L1: `pnpm biome check <paths>` && `pnpm tsc --noEmit`
    L2: `pnpm vitest run <test paths listed in your task>`
    L3: task-specific (build / integration script / component test — see your task's L3 block)
-   L4: `pnpm test:e2e -- --grep "Task N.M:"`
+   L4: `pnpm test:e2e --grep "Task N.M:"`
 5. If any level fails: root-cause fix (no bypass, no skip, no comment-out). Update `.claude/prp-ralph.state.md` with iteration # + failed level + what was tried + next plan.
 6. Loop until all 4 levels exit 0. Never false-COMPLETE. Respect the max-iteration budget (10/20/30 by complexity per the skill).
 7. On success:

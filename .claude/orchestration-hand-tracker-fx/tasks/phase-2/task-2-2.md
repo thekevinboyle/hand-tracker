@@ -509,7 +509,7 @@ Expected: exits 0. Tweakpane + @tweakpane/plugin-essentials must tree-shake clea
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 2.2:"
+pnpm test:e2e --grep "Task 2.2:"
 ```
 
 Expected: ships `tests/e2e/panel.spec.ts` with `test.describe('Task 2.2: paramStore + Panel', ...)`:

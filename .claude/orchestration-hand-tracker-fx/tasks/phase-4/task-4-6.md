@@ -319,7 +319,7 @@ pnpm build
 ### Level 4 — E2E (optional; satisfied by Task 4.R)
 
 ```bash
-pnpm test:e2e -- --grep "Task 4.6:"
+pnpm test:e2e --grep "Task 4.6:"
 ```
 
 Optional Playwright test:

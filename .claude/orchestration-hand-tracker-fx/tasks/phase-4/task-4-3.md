@@ -346,7 +346,7 @@ pnpm build
 ### Level 4 — E2E (satisfied by Task 4.R)
 
 ```bash
-pnpm test:e2e -- --grep "Task 4.3:"
+pnpm test:e2e --grep "Task 4.3:"
 ```
 
 If not present, mark N/A and defer to 4.R.

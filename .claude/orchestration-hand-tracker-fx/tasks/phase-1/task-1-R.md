@@ -14,7 +14,7 @@
 
 **Deliverable**: A regression report committed to `.claude/orchestration-hand-tracker-fx/reports/phase-1-regression.md` that captures (a) timestamps and exit codes for L1-L4 commands, (b) the `curl -sI` header payload from `http://localhost:4173/`, (c) the MCP walkthrough trace (DOM snapshot + console messages at PROMPT, at GRANTED, and after 3 s warmup), and (d) a screenshot `reports/phase-1-regression-granted.png` showing the unmirrored webcam bytes feeding the hidden `<video>` and the mirrored stacked canvases. No new runtime code ships in this task — only a report, the optional header-check script, and any *fixes* the agent discovers along the way (backported to the originating task's files).
 
-**Success Definition**: `pnpm check` exits 0, `pnpm build` exits 0, `pnpm preview` stays up, `curl -sI http://localhost:4173/` emits `cross-origin-opener-policy: same-origin` + `cross-origin-embedder-policy: require-corp`, `pnpm test:e2e -- --grep "Task 1\\."` passes every Phase 1 spec (1.1 smoke, 1.2 usecamera, 1.3 error-states, 1.4 handlandmarker, 1.5 renderloop, 1.6 stage), and the Playwright MCP manual walkthrough reports `state === "GRANTED"` + `window.__handTracker.getLandmarkCount() >= 0` + `getFPS() > 0` within 3 s of the camera grant, with zero `pageerror` events and zero unhandled promise rejections.
+**Success Definition**: `pnpm check` exits 0, `pnpm build` exits 0, `pnpm preview` stays up, `curl -sI http://localhost:4173/` emits `cross-origin-opener-policy: same-origin` + `cross-origin-embedder-policy: require-corp`, `pnpm test:e2e --grep "Task 1\\."` passes every Phase 1 spec (1.1 smoke, 1.2 usecamera, 1.3 error-states, 1.4 handlandmarker, 1.5 renderloop, 1.6 stage), and the Playwright MCP manual walkthrough reports `state === "GRANTED"` + `window.__handTracker.getLandmarkCount() >= 0` + `getFPS() > 0` within 3 s of the camera grant, with zero `pageerror` events and zero unhandled promise rejections.
 
 ---
 
@@ -51,7 +51,7 @@
 
 - Run L1-L4 against the produced `pnpm preview` build (not dev) and capture exit codes.
 - Add a small `scripts/check-headers.sh` (if not already added by Task 1.1) that `curl -sI`s `/`, `/models/hand_landmarker.task`, and `/wasm/vision_wasm_internal.wasm`, greps for the 5 required headers (`cross-origin-opener-policy`, `cross-origin-embedder-policy`, `content-security-policy`, `permissions-policy`, `referrer-policy`), and exits non-zero on any miss.
-- Run the cumulative Playwright suite: `pnpm test:e2e -- --grep "Task 1\\."` (regex escapes the dot) — expected 6 specs pass.
+- Run the cumulative Playwright suite: `pnpm test:e2e --grep "Task 1\\."` (regex escapes the dot) — expected 6 specs pass.
 - Perform a manual Playwright MCP walkthrough on the preview URL and record the trace inside the regression report.
 - Verify the devtools console is empty of errors and `page.on('pageerror')` / `unhandledrejection` events yield zero occurrences during the 10-second capture window.
 - Write `.claude/orchestration-hand-tracker-fx/reports/phase-1-regression.md` with a structured pass/fail table, header dump, console snapshot, and the `reports/phase-1-regression-granted.png` attached.
@@ -72,7 +72,7 @@
 - [ ] `pnpm build` exits 0 and produces `dist/index.html`, `dist/assets/*`, plus the MediaPipe/OGL/Tweakpane manual chunks.
 - [ ] `pnpm preview` serves :4173 and responds 200 on `/`, `/models/hand_landmarker.task`, `/wasm/vision_wasm_internal.wasm`.
 - [ ] `scripts/check-headers.sh http://localhost:4173` exits 0 with all five header families present.
-- [ ] `pnpm test:e2e -- --grep "Task 1\\."` passes 6/6 specs (1.1, 1.2, 1.3, 1.4, 1.5, 1.6) with zero skips.
+- [ ] `pnpm test:e2e --grep "Task 1\\."` passes 6/6 specs (1.1, 1.2, 1.3, 1.4, 1.5, 1.6) with zero skips.
 - [ ] Playwright MCP walkthrough: camera grant flow completes, `data-testid="camera-state"` reaches `GRANTED` within 10 s, `window.__handTracker.getFPS() > 0` after 3 s warmup, landmark count is observable (≥ 0 under synthetic Y4M; documented).
 - [ ] Zero `pageerror` events, zero unhandled promise rejections during the 10-second capture window post-GRANTED.
 - [ ] Screenshot `reports/phase-1-regression-granted.png` committed.
@@ -344,7 +344,7 @@ Task 6: RUN header script
   - ON FAIL: the drift is between vite.config.ts and vercel.json; fix both files in the originating task (Task 1.1 if it's the scaffold set).
 
 Task 7: RUN L4 — Phase 1 E2E Suite
-  - COMMAND: pnpm test:setup && pnpm test:e2e -- --grep "Task 1\\."
+  - COMMAND: pnpm test:setup && pnpm test:e2e --grep "Task 1\\."
   - CAPTURE: which specs ran, pass count, fail count, duration, any skipped
   - EXPECTED: 6/6 passing (smoke, usecamera, errorstates, handlandmarker, renderloop, stage); zero skipped
   - GOTCHA: playwright.config.ts's webServer will ALSO try to run `pnpm build && pnpm preview` — since preview is already up on :4173, Playwright detects it and reuses; if it instead errors "port in use", set `reuseExistingServer: true` in webServer (already set per Task 1.1 config)
@@ -404,8 +404,8 @@ Task 9: RUN console + unhandled-rejection 10-second capture
         });
       });
   - NAMING: describe `Task 1.R: regression soak`
-  - GOTCHA: this spec is ONLY committed on the regression branch and is not part of the Phase 1 union; it runs via `pnpm test:e2e -- --grep "Task 1.R:"`
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.R:" exits 0
+  - GOTCHA: this spec is ONLY committed on the regression branch and is not part of the Phase 1 union; it runs via `pnpm test:e2e --grep "Task 1.R:"`
+  - VALIDATE: pnpm test:e2e --grep "Task 1.R:" exits 0
 
 Task 10: WRITE .claude/orchestration-hand-tracker-fx/reports/phase-1-regression.md
   - STRUCTURE (markdown):
@@ -421,8 +421,8 @@ Task 10: WRITE .claude/orchestration-hand-tracker-fx/reports/phase-1-regression.
       | L2 | pnpm vitest run | ... | ... | <N> tests |
       | L3 | pnpm build | ... | ... | dist=<size> |
       | Headers | scripts/check-headers.sh | ... | ... | all 5 present |
-      | L4 | pnpm test:e2e -- --grep "Task 1\\." | ... | ... | 6/6 pass |
-      | L4 soak | pnpm test:e2e -- --grep "Task 1.R:" | ... | ... | 10s clean |
+      | L4 | pnpm test:e2e --grep "Task 1\\." | ... | ... | 6/6 pass |
+      | L4 soak | pnpm test:e2e --grep "Task 1.R:" | ... | ... | 10s clean |
 
       ## curl -sI header dump
       ```
@@ -508,10 +508,10 @@ Expected: `pnpm build` exits 0, preview binds :4173, header script exits 0, prev
 ```bash
 # 4a — full Phase 1 union
 pnpm test:setup
-pnpm test:e2e -- --grep "Task 1\\."
+pnpm test:e2e --grep "Task 1\\."
 
 # 4b — regression soak spec (this task)
-pnpm test:e2e -- --grep "Task 1.R:"
+pnpm test:e2e --grep "Task 1.R:"
 
 # 4c — MCP walkthrough (manual, documented in the report)
 # Use the Playwright MCP tool calls from Implementation Task 8
@@ -528,8 +528,8 @@ Expected: 4a passes 6/6. 4b passes 1/1. 4c produces the screenshot + the `{ fps>
 - [ ] L1: `pnpm lint && pnpm typecheck` exits 0
 - [ ] L2: `pnpm vitest run` exits 0 with the expected test count
 - [ ] L3: `pnpm build` exits 0; `pnpm preview` serves :4173; `scripts/check-headers.sh` exits 0
-- [ ] L4a: `pnpm test:e2e -- --grep "Task 1\\."` passes 6/6
-- [ ] L4b: `pnpm test:e2e -- --grep "Task 1.R:"` passes 1/1
+- [ ] L4a: `pnpm test:e2e --grep "Task 1\\."` passes 6/6
+- [ ] L4b: `pnpm test:e2e --grep "Task 1.R:"` passes 1/1
 - [ ] L4c: MCP walkthrough produces the screenshot + the probe return + empty error arrays
 - [ ] `curl -sI http://localhost:4173/` shows COOP `same-origin`, COEP `require-corp`, CSP present, Permissions-Policy present, Referrer-Policy present
 

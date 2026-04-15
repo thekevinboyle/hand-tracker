@@ -14,7 +14,7 @@
 
 **Deliverable**: `src/camera/useCamera.ts`, `src/camera/cameraState.ts`, `src/camera/mapError.ts`, and `src/camera/useCamera.test.ts` covering PROMPT, GRANTED, USER_DENIED, SYSTEM_DENIED, DEVICE_CONFLICT, NOT_FOUND, and OverconstrainedError relaxed-retry.
 
-**Success Definition**: `pnpm vitest run src/camera` exits 0 with all state transitions covered; `pnpm tsc --noEmit` + `pnpm biome check src/camera` exit 0; `pnpm test:e2e -- --grep "Task 1.2:"` shows PROMPT → GRANTED via Chromium's fake-device stream.
+**Success Definition**: `pnpm vitest run src/camera` exits 0 with all state transitions covered; `pnpm tsc --noEmit` + `pnpm biome check src/camera` exit 0; `pnpm test:e2e --grep "Task 1.2:"` shows PROMPT → GRANTED via Chromium's fake-device stream.
 
 ---
 
@@ -77,7 +77,7 @@
 - [ ] `src/camera/useCamera.ts` exports `useCamera()` hook matching the return shape in "What".
 - [ ] `src/camera/useCamera.test.ts` covers: initial PROMPT, retry happy path → GRANTED, NotAllowed (denied perms) → USER_DENIED, NotAllowed (prompt perms) → SYSTEM_DENIED, NotReadable → DEVICE_CONFLICT, NotFound → NOT_FOUND, OverconstrainedError → relaxed retry → GRANTED, cleanup calls track.stop().
 - [ ] `pnpm vitest run src/camera` — 8+ tests pass.
-- [ ] `pnpm test:e2e -- --grep "Task 1.2:"` — PROMPT→GRANTED transition observed via Chromium fake device.
+- [ ] `pnpm test:e2e --grep "Task 1.2:"` — PROMPT→GRANTED transition observed via Chromium fake device.
 
 ---
 
@@ -358,7 +358,7 @@ Task 6: CREATE tests/e2e/useCamera.spec.ts
   - MIRROR: tests/e2e/smoke.spec.ts (Task 1.1)
   - NAMING: describe EXACTLY `Task 1.2: useCamera`
   - GOTCHA: The Chromium fake-device flag auto-grants without showing the UI prompt; permissionStatus.state === 'granted' on load, so the hook's useEffect auto-calls startCapture
-  - VALIDATE: pnpm test:e2e -- --grep "Task 1.2:"
+  - VALIDATE: pnpm test:e2e --grep "Task 1.2:"
 ```
 
 ### Integration Points
@@ -409,7 +409,7 @@ Expected: exits 0. The hook is tree-shaken if unused, but `App.tsx` now imports 
 
 ```bash
 pnpm test:setup        # ensure tests/assets/fake-hand.y4m exists
-pnpm test:e2e -- --grep "Task 1.2:"
+pnpm test:e2e --grep "Task 1.2:"
 ```
 
 Expected: one test passes; `data-testid="camera-state"` transitions to `GRANTED` within 10s under the fake-device flag.
@@ -423,7 +423,7 @@ Expected: one test passes; `data-testid="camera-state"` transitions to `GRANTED`
 - [ ] L1 zero errors across `src/camera`, `src/App.tsx`, `tests/e2e/useCamera.spec.ts`
 - [ ] L2 — all camera test cases pass (`pnpm vitest run src/camera`)
 - [ ] L3 — `pnpm build` exits 0
-- [ ] L4 — `pnpm test:e2e -- --grep "Task 1.2:"` passes
+- [ ] L4 — `pnpm test:e2e --grep "Task 1.2:"` passes
 - [ ] Full `pnpm check` + full `pnpm test:e2e` green
 
 ### Feature

@@ -69,7 +69,7 @@
 - [ ] `pnpm tsc --noEmit` exits 0
 - [ ] `pnpm vitest run src/engine/renderer.test.ts` exits 0 (covers: DPR resize math, `uploadVideoFrame` guards on `readyState < 4`, `preserveDrawingBuffer` flag presence)
 - [ ] `pnpm build` exits 0
-- [ ] `pnpm test:e2e -- --grep "Task 3.1:"` exits 0 — asserts the WebGL canvas has non-zero physical size and `renderer.gl instanceof WebGL2RenderingContext`
+- [ ] `pnpm test:e2e --grep "Task 3.1:"` exits 0 — asserts the WebGL canvas has non-zero physical size and `renderer.gl instanceof WebGL2RenderingContext`
 - [ ] Manual verification: open `pnpm preview` in Chrome 120+, grant camera, `window.__handTracker.getVideoTextureHandle()` returns a `WebGLTexture`
 
 ---
@@ -265,7 +265,7 @@ Task 5: CREATE tests/e2e/task-3-1.spec.ts
       * Evaluate: window.__handTracker.getVideoTextureHandle() instanceof WebGLTexture
   - MIRROR: tests/e2e/task-1-5.spec.ts (fake-webcam launch + window.__handTracker pattern)
   - GOTCHA: `--grep "Task 3.1:"` — the describe block string must start with exactly `Task 3.1:`
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.1:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.1:"
 ```
 
 ### Integration Points
@@ -314,7 +314,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 3.1:"
+pnpm test:e2e --grep "Task 3.1:"
 ```
 
 ---

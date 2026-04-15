@@ -630,7 +630,7 @@ Expected: exits 0. The side-effect import must survive Vite's tree-shaking — v
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 2.5:"
+pnpm test:e2e --grep "Task 2.5:"
 ```
 
 Expected: `tests/e2e/manifest-registration.spec.ts` with `test.describe('Task 2.5: handTrackingMosaic manifest', ...)`:

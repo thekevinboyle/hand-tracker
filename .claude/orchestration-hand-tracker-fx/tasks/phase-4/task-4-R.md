@@ -17,7 +17,7 @@
 - `reports/phase-4-walkthrough.png` sequence (≥6 screenshots captured by the spec via `browser_take_screenshot`)
 - `reports/phase-4-regression.md` — summary report (iteration count, validation matrix, any deviations)
 
-**Success Definition**: `pnpm test:e2e -- --grep "Task 4.R:"` exits 0 against the production preview build; all L1–L4 green; screenshots attached; no skipped assertions.
+**Success Definition**: `pnpm test:e2e --grep "Task 4.R:"` exits 0 against the production preview build; all L1–L4 green; screenshots attached; no skipped assertions.
 
 ---
 
@@ -76,7 +76,7 @@
 
 - [ ] `pnpm build` succeeds
 - [ ] `pnpm preview` serves on localhost:4173
-- [ ] `pnpm test:e2e -- --grep "Task 4.R:"` exits 0 with the preview URL as base
+- [ ] `pnpm test:e2e --grep "Task 4.R:"` exits 0 with the preview URL as base
 - [ ] `reports/phase-4-walkthrough/*.png` contains ≥6 screenshots with readable UI
 - [ ] `reports/phase-4-regression.md` lists every Phase 4 task + pass/fail
 - [ ] Full `pnpm vitest run`, `pnpm biome check .`, `pnpm tsc --noEmit` green (L1/L2 regression)
@@ -164,7 +164,7 @@ src/main.tsx                       # MODIFY — add guarded window.__test__ hook
 //
 //   pnpm build
 //   pnpm preview &   # serves on 4173
-//   PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 4.R:"
+//   PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 4.R:"
 //
 // Dev-server regressions are silently wrong because COOP/COEP/CSP differ.
 
@@ -301,7 +301,7 @@ Task 2: CREATE e2e/phase-4-regression.spec.ts
         await snap(page, 'reduced-motion', 6)
       })
   - MIRROR: existing Phase 1.6 e2e spec (for config + import order)
-  - VALIDATE: pnpm build && pnpm preview & sleep 3 && PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 4.R:"
+  - VALIDATE: pnpm build && pnpm preview & sleep 3 && PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 4.R:"
 
 Task 3: CREATE reports/phase-4-regression.md
   - IMPLEMENT: |
@@ -383,7 +383,7 @@ PREVIEW_PID=$!
 sleep 3
 
 # Run regression
-PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 4.R:"
+PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 4.R:"
 E2E_STATUS=$?
 
 # Cleanup

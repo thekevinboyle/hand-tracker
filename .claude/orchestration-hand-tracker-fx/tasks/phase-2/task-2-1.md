@@ -438,7 +438,7 @@ Expected: exits 0. The new module is tree-shaken cleanly (types-only file + tiny
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 2.1:"
+pnpm test:e2e --grep "Task 2.1:"
 ```
 
 Expected: this task has **no user-visible behavior** so the E2E suite ships a single `tests/e2e/engine-registry.spec.ts` with a `describe('Task 2.1: registry types', ...)` block that:
@@ -473,7 +473,7 @@ If `src/engine/devHooks.ts` does not exist, skip the modify and rely on the `des
 - [ ] `pnpm typecheck` exits 0
 - [ ] `pnpm vitest run` — all tests pass (not just registry.test.ts)
 - [ ] `pnpm build` — production build succeeds
-- [ ] `pnpm test:e2e -- --grep "Task 2.1:"` — exits 0
+- [ ] `pnpm test:e2e --grep "Task 2.1:"` — exits 0
 
 ### Feature
 

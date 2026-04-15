@@ -14,7 +14,7 @@
 
 **Deliverable**: All four validation levels passing on the `pnpm preview` build. `reports/phase-3-visual-01-app.png`, `reports/phase-3-visual-02-reference.png`, `reports/phase-3-visual-composite.png` (side-by-side), and `reports/phase-3-regression.md` (a report covering visual checklist, FPS, console state, and a "ship / fix" decision). `tests/e2e/phase-3-regression.spec.ts` (new) — an automated spec that runs against the preview URL and asserts the 8-point checklist where programmatically possible.
 
-**Success Definition**: `pnpm check && pnpm build && pnpm preview` (in background) + `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 3.R:"` all exit 0; every checklist item in `reports/phase-3-regression.md` is ticked; the human visually agrees with the side-by-side composite (captured at `reports/phase-3-visual-composite.png`).
+**Success Definition**: `pnpm check && pnpm build && pnpm preview` (in background) + `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 3.R:"` all exit 0; every checklist item in `reports/phase-3-regression.md` is ticked; the human visually agrees with the side-by-side composite (captured at `reports/phase-3-visual-composite.png`).
 
 ---
 
@@ -93,8 +93,8 @@ Additionally, non-visual assertions:
 - [ ] `pnpm vitest run` exits 0 (all Phase 1–3 unit tests)
 - [ ] `pnpm build` exits 0
 - [ ] `pnpm preview` served build boots without console errors
-- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task"` exits 0 (every Phase 1–3 E2E spec passes against the preview build)
-- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 3.R:"` exits 0
+- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task"` exits 0 (every Phase 1–3 E2E spec passes against the preview build)
+- [ ] `PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 3.R:"` exits 0
 - [ ] `reports/phase-3-visual-01-app.png`, `reports/phase-3-visual-02-reference.png`, `reports/phase-3-visual-composite.png` all exist and are non-empty
 - [ ] `reports/phase-3-regression.md` exists with every checklist item marked PASS or explicit FAIL-with-reason
 
@@ -384,7 +384,7 @@ Task 1: CREATE tests/e2e/phase-3-regression.spec.ts
   - MIRROR: tests/e2e/smoke.spec.ts (describe / beforeEach / fake-webcam launchOptions)
   - NAMING: describe block starts with `Task 3.R:` so --grep resolves
   - GOTCHA: Composite-image generation via page.evaluate is convenient but fragile; alternative = spawn a small Node + sharp script. Either is acceptable; start with the page.evaluate approach for zero new dependencies
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.R:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.R:"
 
 Task 2: CREATE reports/phase-3-regression.md (Ralph generates this after the spec passes)
   - TEMPLATE:
@@ -401,8 +401,8 @@ Task 2: CREATE reports/phase-3-regression.md (Ralph generates this after the spe
       | L1 | pnpm tsc --noEmit | PASS |
       | L2 | pnpm vitest run | PASS (N/N) |
       | L3 | pnpm build | PASS |
-      | L4 | pnpm test:e2e -- --grep "Task" | PASS (N specs) |
-      | L4 | pnpm test:e2e -- --grep "Task 3.R:" | PASS |
+      | L4 | pnpm test:e2e --grep "Task" | PASS (N specs) |
+      | L4 | pnpm test:e2e --grep "Task 3.R:" | PASS |
 
       ## Visual Fidelity Checklist
       | # | Item | D-numbers | Status | Notes |
@@ -456,8 +456,8 @@ Task 4: Regression run orchestration
       4. pnpm build
       5. pnpm preview &     # background, port 4173
          (use Bash run_in_background)
-      6. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task"
-      7. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e -- --grep "Task 3.R:"
+      6. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task"
+      7. PLAYWRIGHT_BASE_URL=http://localhost:4173 VITE_DEV_HOOKS=1 pnpm test:e2e --grep "Task 3.R:"
       8. Kill preview process
       9. Fill in reports/phase-3-regression.md with the results
   - VALIDATE: Each step exits 0; on failure, stop and diagnose (do NOT continue to later steps)
@@ -512,10 +512,10 @@ VITE_DEV_HOOKS=1 pnpm preview
 
 ```bash
 # Full Phase 1–3 regression
-PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task"
+PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task"
 
 # Task 3.R specifically
-PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 3.R:"
+PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e --grep "Task 3.R:"
 ```
 
 ### Playwright MCP screenshot capture (complementary to L4)
@@ -541,8 +541,8 @@ PLAYWRIGHT_BASE_URL=http://localhost:4173 pnpm test:e2e -- --grep "Task 3.R:"
 - [ ] `pnpm tsc --noEmit` — zero errors
 - [ ] `pnpm vitest run` — all tests pass
 - [ ] `pnpm build` — production build succeeds
-- [ ] `pnpm test:e2e -- --grep "Task"` — all Phase 1–3 specs pass against preview
-- [ ] `pnpm test:e2e -- --grep "Task 3.R:"` — regression spec passes
+- [ ] `pnpm test:e2e --grep "Task"` — all Phase 1–3 specs pass against preview
+- [ ] `pnpm test:e2e --grep "Task 3.R:"` — regression spec passes
 
 ### Feature
 

@@ -84,7 +84,7 @@ Every task in this phase ships with all 4 levels. The exact runnable commands li
 - **L1**: `pnpm lint <paths> && pnpm typecheck` → zero errors
 - **L2**: `pnpm vitest run <unit-test-file>` → all tests pass
 - **L3**: `pnpm build` → production build exits 0
-- **L4**: `pnpm test:e2e -- --grep "Task 2.N:"` → all matching Playwright specs pass
+- **L4**: `pnpm test:e2e --grep "Task 2.N:"` → all matching Playwright specs pass
 
 The Ralph loop self-heals until all four exit 0. The regression task (2.R) re-runs all four against a fresh `pnpm build && pnpm preview` serve.
 

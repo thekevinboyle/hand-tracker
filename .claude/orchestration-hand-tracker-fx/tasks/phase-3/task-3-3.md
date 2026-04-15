@@ -434,7 +434,7 @@ Task 3: CREATE tests/e2e/task-3-3.spec.ts
       * Assert returned array length > 0 and every rect has x1 < x2, y1 < y2, values in [0, 1]
   - NAMING: `Task 3.3:` prefix on describe
   - GOTCHA: The dev hook is guarded by import.meta.env.DEV; add it to src/engine/devHooks.ts
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.3:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.3:"
 ```
 
 ### Integration Points
@@ -482,7 +482,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 3.3:"
+pnpm test:e2e --grep "Task 3.3:"
 ```
 
 ---

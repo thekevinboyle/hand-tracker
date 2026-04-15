@@ -341,7 +341,7 @@ Task 3: CREATE tests/e2e/task-3-2.spec.ts
       * Alternative (simpler): wait for Task 3.4 integration — but Task 3.4 depends on 3.2; for 3.2 alone, use the dev hook `window.__handTracker.testCompileShaders()` which returns true/false
   - NAMING: `Task 3.2:` prefix on the describe block (grep depends on this)
   - GOTCHA: If adding a dev hook, guard with `import.meta.env.DEV || MODE === 'test'`
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.2:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.2:"
 ```
 
 ### Integration Points
@@ -384,7 +384,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 3.2:"
+pnpm test:e2e --grep "Task 3.2:"
 ```
 
 ---

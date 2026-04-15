@@ -12,7 +12,7 @@
 
 **Feature Goal**: Lock in the Phase-0 scaffold as a production-grade gate — a GitHub Actions CI workflow, a Playwright smoke spec that asserts `crossOriginIsolated === true`, and a root-level `CLAUDE.md` orchestration pointer — so every subsequent task runs against a green baseline.
 
-**Deliverable**: `.github/workflows/ci.yml` + `tests/e2e/smoke.spec.ts` + root `CLAUDE.md` + a passing `pnpm check` + a passing `pnpm test:e2e -- --grep "Task 1.1:"` run.
+**Deliverable**: `.github/workflows/ci.yml` + `tests/e2e/smoke.spec.ts` + root `CLAUDE.md` + a passing `pnpm check` + a passing `pnpm test:e2e --grep "Task 1.1:"` run.
 
 **Success Definition**: `pnpm check` exits 0, `pnpm build && pnpm preview` serves `/` with COOP/COEP/CSP headers, and the Playwright smoke asserts `crossOriginIsolated === true` on the preview URL. CI workflow is committed and runs on push + PR.
 
@@ -64,7 +64,7 @@
 - [ ] `tests/e2e/smoke.spec.ts` committed — one test prefixed `Task 1.1:` asserting `crossOriginIsolated === true`.
 - [ ] Root `CLAUDE.md` committed — contains the "PRP Methodology and Ralph Loop" section and the 4-level validation table.
 - [ ] `pnpm check` exits 0 (tsc + biome + vitest).
-- [ ] `pnpm test:e2e -- --grep "Task 1.1:"` exits 0 locally.
+- [ ] `pnpm test:e2e --grep "Task 1.1:"` exits 0 locally.
 - [ ] `curl -I http://localhost:4173/` (while `pnpm preview` is running) shows `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`.
 
 ---
@@ -289,7 +289,7 @@ Task 3: CREATE tests/e2e/smoke.spec.ts
   - MIRROR: None — first E2E spec in the repo. All later specs mirror THIS shape.
   - NAMING: kebab-case file, `.spec.ts` extension, describe prefix EXACTLY `Task 1.1: smoke`
   - GOTCHA: `page.goto('/')` uses `baseURL` from playwright.config.ts (default http://localhost:4173)
-  - VALIDATE: pnpm biome check tests/e2e/smoke.spec.ts && pnpm tsc --noEmit && pnpm test:e2e -- --grep "Task 1.1:"
+  - VALIDATE: pnpm biome check tests/e2e/smoke.spec.ts && pnpm tsc --noEmit && pnpm test:e2e --grep "Task 1.1:"
 ```
 
 ### Integration Points
@@ -301,7 +301,7 @@ CI:
   - artifact: playwright-report on failure
 
 VALIDATION_CONVENTION:
-  - every later task's L4 uses `pnpm test:e2e -- --grep "Task N.M:"`
+  - every later task's L4 uses `pnpm test:e2e --grep "Task N.M:"`
   - describe block MUST start with `Task N.M: <feature>` (this spec is the template)
 
 DOCS:
@@ -342,7 +342,7 @@ Expected: exits 0. The build output `dist/index.html` must exist; `dist/assets/*
 
 ```bash
 pnpm test:setup        # generate fake-hand.y4m if missing (idempotent)
-pnpm test:e2e -- --grep "Task 1.1:"
+pnpm test:e2e --grep "Task 1.1:"
 ```
 
 Expected: one test passes; the log shows `Task 1.1: smoke > app boots with crossOriginIsolated=true and main visible` ✓. `--grep "Task 1.1:"` must NOT return "0 tests found, exit 0" — verify by reading the Playwright output summary.
@@ -356,7 +356,7 @@ Expected: one test passes; the log shows `Task 1.1: smoke > app boots with cross
 - [ ] L1: `pnpm biome check .` + `pnpm tsc --noEmit` exit 0
 - [ ] L2: `pnpm vitest run` — 1/1 existing test passes
 - [ ] L3: `pnpm build` exits 0
-- [ ] L4: `pnpm test:e2e -- --grep "Task 1.1:"` exits 0 with `1 passed`
+- [ ] L4: `pnpm test:e2e --grep "Task 1.1:"` exits 0 with `1 passed`
 - [ ] `curl -sI http://localhost:4173/` (with preview running) shows `cross-origin-opener-policy: same-origin` and `cross-origin-embedder-policy: require-corp`
 - [ ] `.github/workflows/ci.yml` YAML parses (`node --input-type=module -e "import('yaml').then(y=>console.log(y.default.parse(require('fs').readFileSync('.github/workflows/ci.yml','utf8'))))"` or visual)
 

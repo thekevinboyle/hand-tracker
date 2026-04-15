@@ -14,7 +14,7 @@
 
 **Deliverable**: Adds to `src/engine/renderer.ts`: `attachContextLossHandlers(canvas, onLost, onRestored)` and a `disposeRenderer(bundle)` helper that calls `program.remove()` on the effect, `gl.deleteTexture(texture.texture)` on the video texture, disconnects `ResizeObserver`, removes the context-loss listeners, and optionally `loseContext()` to release the canvas. `src/engine/contextLoss.test.ts` (new) drives `WEBGL_lose_context` in a real WebGL2 context (Playwright-side or happy-dom+jsdom with real-canvas) and verifies the listeners fire and `gl.deleteTexture` is called.
 
-**Success Definition**: `pnpm vitest run src/engine/contextLoss.test.ts` exits 0; `pnpm test:e2e -- --grep "Task 3.5:"` exits 0 — a Playwright test forces context loss via the `WEBGL_lose_context` extension, waits 50ms, force-restores, and asserts the mosaic resumes rendering (region count > 0 again with a fake landmark payload); `pnpm tsc --noEmit` exits 0.
+**Success Definition**: `pnpm vitest run src/engine/contextLoss.test.ts` exits 0; `pnpm test:e2e --grep "Task 3.5:"` exits 0 — a Playwright test forces context loss via the `WEBGL_lose_context` extension, waits 50ms, force-restores, and asserts the mosaic resumes rendering (region count > 0 again with a fake landmark payload); `pnpm tsc --noEmit` exits 0.
 
 ---
 
@@ -74,7 +74,7 @@
 - [ ] `pnpm tsc --noEmit` exits 0
 - [ ] `pnpm vitest run src/engine/contextLoss.test.ts` exits 0
 - [ ] `pnpm build` exits 0
-- [ ] `pnpm test:e2e -- --grep "Task 3.5:"` exits 0 — forces context loss, then restore, then asserts mosaic resumes
+- [ ] `pnpm test:e2e --grep "Task 3.5:"` exits 0 — forces context loss, then restore, then asserts mosaic resumes
 - [ ] Manual: open DevTools console; run `document.querySelector('canvas[data-testid="webgl-canvas"]').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext()`; 100ms later call `.restoreContext()`; visually confirm mosaic resumes; console shows one warn + one info log, no errors
 
 ---
@@ -355,7 +355,7 @@ Task 4: CREATE tests/e2e/task-3-5.spec.ts
       * Assert console shows one 'WebGL context lost' warn + one 'WebGL context restored' info, zero errors
   - NAMING: `Task 3.5:` prefix
   - GOTCHA: restoreContext may not be available on all hardware; tolerate by skipping the spec in that case via `test.skip`
-  - VALIDATE: pnpm test:e2e -- --grep "Task 3.5:"
+  - VALIDATE: pnpm test:e2e --grep "Task 3.5:"
 ```
 
 ### Integration Points
@@ -402,7 +402,7 @@ pnpm build
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 3.5:"
+pnpm test:e2e --grep "Task 3.5:"
 ```
 
 ---

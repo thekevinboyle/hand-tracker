@@ -364,7 +364,7 @@ pnpm build
 
 ```bash
 # Full E2E suite (Chrome with --use-fake-device-for-media-stream)
-pnpm test:e2e -- --grep "<task-name>"
+pnpm test:e2e --grep "<task-name>"
 
 # Expected: Playwright test exits 0. Assertions:
 #   - Page loads without JS errors
@@ -1083,7 +1083,7 @@ Expected: exits 0. The hook must be importable from `src/app/main.tsx` without b
 ### Level 4 — E2E
 
 ```bash
-pnpm test:e2e -- --grep "Task 1.2"
+pnpm test:e2e --grep "Task 1.2"
 ```
 
 Expected: Playwright test with `--use-fake-device-for-media-stream`:
@@ -1191,7 +1191,7 @@ Every task file specifies exact runnable commands at four levels:
 | L1 | Syntax and Style | `pnpm biome check <paths>` + `pnpm tsc --noEmit` |
 | L2 | Unit Tests | `pnpm vitest run <test-file>` |
 | L3 | Integration | `pnpm build` (production build must succeed) |
-| L4 | E2E | `pnpm test:e2e -- --grep "<Task N.M>"` |
+| L4 | E2E | `pnpm test:e2e --grep "<Task N.M>"` |
 
 **Golden Rule**: Never accumulate broken state. Fix L1 failures before writing the next file.
 
