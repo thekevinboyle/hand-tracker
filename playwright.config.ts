@@ -37,7 +37,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: 'pnpm build && pnpm preview',
+        command: 'pnpm build --mode test && pnpm preview',
         port: 4173,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
