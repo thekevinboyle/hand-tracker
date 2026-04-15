@@ -1,9 +1,12 @@
 /**
  * Dev/test-only window.__handTracker hook — FPS + landmark-count fields added
  * by Task 1.5. Merged onto any existing `__handTracker` shape (Task 1.4 adds
- * `isReady` / `isUsingGpu`). Gated by `import.meta.env.DEV` or
- * `import.meta.env.MODE === 'test'` so the block tree-shakes in production.
+ * `isReady` / `isUsingGpu`). Task 2.1 adds `__engine.listEffects`. Gated by
+ * `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the block
+ * tree-shakes in production.
  */
+
+import { listEffects } from './registry';
 
 const FPS_SAMPLE_MS = 3000;
 const samples: number[] = [];
@@ -55,9 +58,14 @@ const SHOULD_EXPOSE =
 if (SHOULD_EXPOSE && typeof window !== 'undefined') {
   const w = window as unknown as { __handTracker?: Record<string, unknown> };
   const existing = (w.__handTracker ?? {}) as Record<string, unknown>;
+  const existingEngine = (existing.__engine ?? {}) as Record<string, unknown>;
   w.__handTracker = {
     ...existing,
     getFPS,
     getLandmarkCount,
+    __engine: {
+      ...existingEngine,
+      listEffects,
+    },
   };
 }
