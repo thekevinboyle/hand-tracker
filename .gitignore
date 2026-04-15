@@ -21,6 +21,9 @@ tests/assets/*.y4m
 # Orchestration ephemeral
 .claude/prp-ralph.state.md
 
+# Playwright MCP runtime snapshots (per-session, not checked in)
+.playwright-mcp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

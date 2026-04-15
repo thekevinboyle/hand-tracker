@@ -1,0 +1,1 @@
+See `.claude/orchestration-hand-tracker-fx/tasks/phase-1/task-1-R.md` (archived by reference — `cp` was blocked by the sandbox during the Ralph archive step; the orchestration source of truth remains the canonical copy).
