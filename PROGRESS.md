@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 2 in progress (2.1 + 2.2 + 2.3 done)
+**Current Phase**: Phase 2 in progress (2.1 + 2.2 + 2.3 + 2.4 done)
 **Last updated**: 2026-04-15
 
 ---
@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
-| 2: Engine + Overlay | in-progress | 3 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
+| 2: Engine + Overlay | in-progress | 4 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
@@ -41,7 +41,7 @@
 | 2.1 | Effect manifest + registry types | done | task/2-1-effect-registry-types | 2026-04-15 | All 4 levels green in 1 iteration; 6 unit tests (+55 prior = 61 total); dev hook `__engine.listEffects` merged onto `window.__handTracker`; `manifest.ts` re-exports `FrameContext`/`Landmark` from `types.ts` (single SSOT). |
 | 2.2 | paramStore + buildPaneFromManifest | done | task/2-2-param-store-build-pane | 2026-04-15 | All 4 levels green in 1 iteration; 34 new unit tests (95 total across 10 files); dev-hook `__engine.getParam` + `setParam` added (architecture skill updated — promoted from Task 2.5 to 2.2); `<Panel />` mounts Tweakpane via useEffect + disposes idempotently under StrictMode; `buildPaneFromManifest` skips tab when only one page, Essentials plugin registered before any blade. L4 validates the dev-hook shape (Panel itself not yet rendered in App — follow-up in Task 2.5). |
 | 2.3 | Seeded grid generator + 2D overlay rendering | done | task/2-3-grid-generator-overlay | 2026-04-15 | All 4 levels green in 1 iteration; 33 new unit tests (128 total across 12 files); Mulberry32 PRNG + deterministic column/row breakpoints with minCell floor; drawGrid uses batched single-stroke + save/restore + setLineDash([]); strokeStyle/lineWidth asserted via jest-canvas-mock `__getEvents()` because save/restore pops the stack after draw; dev hook `__engine.lastGridLayout` deferred to Task 2.5 (L4 guards prior hook shape meanwhile). |
-| 2.4 | Dotted-circle blobs + xy labels | pending | | | |
+| 2.4 | Dotted-circle blobs + xy labels | done | task/2-4-blob-renderer | 2026-04-15 | All 4 levels green in 1 iteration; 21 new unit tests (149 total across 13 files); pure `drawLandmarkBlobs(ctx, landmarks, target, style?, opts?)` + `formatCoordLabel(x, y)` + `FINGERTIP_INDICES` tuple; batched dotted arcs (single stroke) with `setLineDash([2,3])` then reset to `[]` before labels; strokeStyle/lineWidth/fillStyle/font/textBaseline/textAlign asserted via `__getEvents()` per Task 2.3 finding; mirror=true flips blob cx and counter-rotates label via inner save/scale/restore; getLandmarkBlobCount dev hook deferred to Task 2.5 (L4 guards prior hook shape meanwhile). |
 | 2.5 | handTrackingMosaic manifest + registration | pending | | | |
 | 2.R | Phase 2 Regression | pending | | | |
 
