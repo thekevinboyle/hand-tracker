@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 1 in progress — Tasks 1.1, 1.2, 1.3 done; 1.4 next
+**Current Phase**: Phase 1 in progress — Tasks 1.1, 1.2, 1.3, 1.4 done; 1.5 next
 **Last updated**: 2026-04-15
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Status | Tasks Done | Total | Notes |
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
-| 1: Foundation | in-progress | 3 | 7 | Camera + MediaPipe + rVFC loop |
+| 1: Foundation | in-progress | 4 | 7 | Camera + MediaPipe + rVFC loop |
 | 2: Engine + Overlay | pending | 0 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
@@ -29,7 +29,7 @@
 | 1.1 | Harden scaffold + CI | done | task/1-1-scaffold-ci | 2026-04-15 | All 4 levels green; CLAUDE.md L4 cmd form fixed |
 | 1.2 | useCamera hook (8-state machine) | done | task/1-2-usecamera-state-machine | 2026-04-15 | All 4 levels green; 11 unit tests; PROMPT→GRANTED E2E; App.tsx import path is `./camera/useCamera` (task file said `../camera/useCamera`) |
 | 1.3 | Error-state UI + pre-prompt card | done | task/1-3-error-state-ui | 2026-04-15 | All 4 levels green; 10 unit tests; PrePromptCard + ErrorStates + errorCopy table; App.tsx switches on state; existing camera-state testid preserved offscreen |
-| 1.4 | MediaPipe HandLandmarker init + singleton | pending | | | |
+| 1.4 | MediaPipe HandLandmarker init + singleton | done | task/1-4-mediapipe-handlandmarker | 2026-04-15 | All 4 levels green; 16 unit tests (isWebGLFailure variants + GPU/CPU/WebGL/Model error paths + singleton + dispose); E2E asserts crossOriginIsolated + hook shape (module not yet wired into app — Task 1.5 does that). |
 | 1.5 | rVFC-driven render loop scaffold | pending | | | |
 | 1.6 | Video mount + mirror-aware canvas composition | pending | | | |
 | 1.R | Phase 1 Regression | pending | | | |
