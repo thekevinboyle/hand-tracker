@@ -1,24 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCamera } from './camera/useCamera';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
 import { PrePromptCard } from './ui/PrePromptCard';
+import { Stage, type StageHandle } from './ui/Stage';
 
 export function App() {
-  const { state, retry, videoEl } = useCamera();
+  const { state, retry, stream } = useCamera();
   const [trackerError, setTrackerError] = useState<unknown>(null);
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const stageRef = useRef<StageHandle | null>(null);
 
   // Render-loop lifetime is owned here, NOT in Stage.tsx (see
-  // hand-tracker-fx-architecture skill). Effect runs when state flips to
-  // GRANTED; cleanup cancels the rVFC registration. Idempotent under
-  // StrictMode because startRenderLoop returns a handle with an idempotent
-  // stop(). We do NOT call disposeHandLandmarker on unmount — the module-
-  // level singleton survives across StrictMode double-mount.
+  // hand-tracker-fx-architecture skill). Stage's onVideoReady populates the
+  // `videoEl` state once the <video> element has a live srcObject + has
+  // resolved `play()` (or rejected — either way we can start rVFC). The
+  // effect tears down + restarts cleanly on StrictMode double-mount because
+  // startRenderLoop.stop() is idempotent.
   useEffect(() => {
-    if (state !== 'GRANTED') return;
-    const video = videoEl.current;
-    if (!video) return;
+    if (state !== 'GRANTED' || !videoEl) return;
 
     let cancelled = false;
     let stopLoop: (() => void) | null = null;
@@ -27,9 +28,12 @@ export function App() {
       try {
         const landmarker = await initHandLandmarker();
         if (cancelled) return;
+        const overlayCanvas = stageRef.current?.overlayCanvas ?? null;
+        const overlayCtx2d = overlayCanvas ? overlayCanvas.getContext('2d') : null;
         const handle = startRenderLoop({
-          video,
+          video: videoEl,
           landmarker,
+          overlayCtx2d,
           onFrame: () => {
             /* Phase 2+ wires the effect registry dispatch here. */
           },
@@ -59,8 +63,7 @@ export function App() {
       {state !== 'PROMPT' && state !== 'GRANTED' && <ErrorStates state={state} onRetry={retry} />}
       {state === 'GRANTED' && (
         <>
-          <h1>Hand Tracker FX</h1>
-          <p>Scaffolding ready. Webcam pipeline lands in Phase 1 of the implementation plan.</p>
+          <Stage ref={stageRef} stream={stream} mirror onVideoReady={(el) => setVideoEl(el)} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error
@@ -68,22 +71,6 @@ export function App() {
           ) : null}
         </>
       )}
-      {/*
-        Hidden <video> owned by useCamera — rendered at all times so
-        `videoEl.current` is non-null when useCamera's startCapture sets
-        srcObject (startCapture fires before state transitions to GRANTED).
-        Task 1.6 replaces this with the Stage component.
-      */}
-      <video
-        ref={videoEl}
-        playsInline
-        muted
-        autoPlay
-        style={{ display: 'none' }}
-        data-testid="hidden-video"
-      >
-        <track kind="captions" />
-      </video>
     </main>
   );
 }

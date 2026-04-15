@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 1 in progress — Tasks 1.1, 1.2, 1.3, 1.4, 1.5 done; 1.6 next
+**Current Phase**: Phase 1 in progress — Tasks 1.1, 1.2, 1.3, 1.4, 1.5, 1.6 done; 1.R next
 **Last updated**: 2026-04-15
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Status | Tasks Done | Total | Notes |
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
-| 1: Foundation | in-progress | 5 | 7 | Camera + MediaPipe + rVFC loop |
+| 1: Foundation | in-progress | 6 | 7 | Camera + MediaPipe + rVFC loop + Stage |
 | 2: Engine + Overlay | pending | 0 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
@@ -31,7 +31,7 @@
 | 1.3 | Error-state UI + pre-prompt card | done | task/1-3-error-state-ui | 2026-04-15 | All 4 levels green; 10 unit tests; PrePromptCard + ErrorStates + errorCopy table; App.tsx switches on state; existing camera-state testid preserved offscreen |
 | 1.4 | MediaPipe HandLandmarker init + singleton | done | task/1-4-mediapipe-handlandmarker | 2026-04-15 | All 4 levels green; 16 unit tests (isWebGLFailure variants + GPU/CPU/WebGL/Model error paths + singleton + dispose); E2E asserts crossOriginIsolated + hook shape (module not yet wired into app — Task 1.5 does that). |
 | 1.5 | rVFC-driven render loop scaffold | done | task/1-5-rvfc-render-loop | 2026-04-15 | All 4 levels green; 8 unit tests; startRenderLoop + rVFC driver + dev-hook FPS/landmark count; playwright webServer switched to `pnpm build --mode test` so MODE=test bakes in the dev hook; hidden <video> rendered unconditionally in App.tsx so useCamera can bind srcObject before GRANTED. |
-| 1.6 | Video mount + mirror-aware canvas composition | pending | | | |
+| 1.6 | Video mount + mirror-aware canvas composition | done | task/1-6-stage-mirror-canvas | 2026-04-15 | All 4 levels green; 6 unit tests (DOM + refs + mirror toggle + D27 video-never-transformed + srcObject); Stage owns <video> + 2 canvases + DPR resize; App wires onVideoReady→videoEl state→render loop; useCamera's internal videoRef now unbound (no-op assignment kept for backward-compat). Full 1.1–1.6 E2E regression green. |
 | 1.R | Phase 1 Regression | pending | | | |
 
 ### Phase 2: Engine + Overlay

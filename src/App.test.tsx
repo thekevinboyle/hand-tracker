@@ -23,10 +23,13 @@ describe('App', () => {
     stateRef.current = 'GRANTED';
   });
 
-  it('renders the scaffold heading when camera is GRANTED', () => {
+  it('renders the Stage (video + stacked canvases) when camera is GRANTED', () => {
     stateRef.current = 'GRANTED';
     render(<App />);
-    expect(screen.getByRole('heading', { name: /hand tracker fx/i })).toBeInTheDocument();
+    expect(screen.getByTestId('stage')).toBeInTheDocument();
+    expect(screen.getByTestId('stage-video')).toBeInTheDocument();
+    expect(screen.getByTestId('webgl-canvas')).toBeInTheDocument();
+    expect(screen.getByTestId('overlay-canvas')).toBeInTheDocument();
   });
 
   it('renders the PrePromptCard when camera state is PROMPT', () => {
