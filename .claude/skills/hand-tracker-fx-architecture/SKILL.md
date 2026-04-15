@@ -153,8 +153,8 @@ Gated by `import.meta.env.DEV || import.meta.env.MODE === 'test'`. Enumerated be
 | `getFPS` | `() => number` | Task 1.5 |
 | `getLandmarkCount` | `() => number` | Task 1.5 |
 | `__engine.listEffects` | `() => EffectManifest[]` | Task 2.1 / 2.5 |
-| `__engine.getParam` | `(dotPath: string) => unknown` | Task 2.5 |
-| `__engine.setParam` | `(dotPath: string, value: unknown) => void` | Task 2.5 (required by 2.R) |
+| `__engine.getParam` | `(dotPath: string) => unknown` | Task 2.2 |
+| `__engine.setParam` | `(dotPath: string, value: unknown) => void` | Task 2.2 (required by 2.R) |
 | `__engine.getLandmarkBlobCount` | `() => number` | Task 2.4 / 2.5 |
 | `__engine.lastGridLayout` | `() => GridLayout \| null` | Task 2.5 |
 | `getVideoTextureHandle` | `() => WebGLTexture \| null` | Task 3.1 |

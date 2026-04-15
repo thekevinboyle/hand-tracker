@@ -1,11 +1,14 @@
 /**
  * Dev/test-only window.__handTracker hook — FPS + landmark-count fields added
  * by Task 1.5. Merged onto any existing `__handTracker` shape (Task 1.4 adds
- * `isReady` / `isUsingGpu`). Task 2.1 adds `__engine.listEffects`. Gated by
- * `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the block
- * tree-shakes in production.
+ * `isReady` / `isUsingGpu`). Task 2.1 adds `__engine.listEffects`. Task 2.2
+ * adds `__engine.getParam` and `__engine.setParam` so E2E can read/write the
+ * paramStore through the browser hook without importing engine internals.
+ * Gated by `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the
+ * block tree-shakes in production.
  */
 
+import { paramStore } from './paramStore';
 import { listEffects } from './registry';
 
 const FPS_SAMPLE_MS = 3000;
@@ -55,6 +58,31 @@ const SHOULD_EXPOSE =
   import.meta.env.MODE === 'test' ||
   import.meta.env.VITE_EXPOSE_DEV_HOOK === '1';
 
+/**
+ * Read a dot-pathed param value from the paramStore snapshot
+ * (e.g. `getParam('grid.columnCount')`). Returns `undefined` for
+ * missing sections/keys so callers can probe without throwing.
+ */
+function getParam(dotPath: string): unknown {
+  const idx = dotPath.indexOf('.');
+  if (idx < 0) return undefined;
+  const section = dotPath.slice(0, idx);
+  const leaf = dotPath.slice(idx + 1);
+  const snap = paramStore.snapshot as Record<string, Record<string, unknown> | undefined>;
+  const sectionObj = snap[section];
+  if (!sectionObj) return undefined;
+  return sectionObj[leaf];
+}
+
+/**
+ * Write a dot-pathed param value through the paramStore (mirrors
+ * `paramStore.set`). Exposed on the dev hook so Playwright fake-webcam E2E
+ * can drive parameters without reaching into engine internals.
+ */
+function setParam(dotPath: string, value: unknown): void {
+  paramStore.set(dotPath, value);
+}
+
 if (SHOULD_EXPOSE && typeof window !== 'undefined') {
   const w = window as unknown as { __handTracker?: Record<string, unknown> };
   const existing = (w.__handTracker ?? {}) as Record<string, unknown>;
@@ -66,6 +94,8 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
     __engine: {
       ...existingEngine,
       listEffects,
+      getParam,
+      setParam,
     },
   };
 }

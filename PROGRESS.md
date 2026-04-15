@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 1 done (regression green) — ready for Phase 2
+**Current Phase**: Phase 2 in progress (2.1 + 2.2 done)
 **Last updated**: 2026-04-15
 
 ---
@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
-| 2: Engine + Overlay | in-progress | 1 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
+| 2: Engine + Overlay | in-progress | 2 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
@@ -39,7 +39,7 @@
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
 | 2.1 | Effect manifest + registry types | done | task/2-1-effect-registry-types | 2026-04-15 | All 4 levels green in 1 iteration; 6 unit tests (+55 prior = 61 total); dev hook `__engine.listEffects` merged onto `window.__handTracker`; `manifest.ts` re-exports `FrameContext`/`Landmark` from `types.ts` (single SSOT). |
-| 2.2 | paramStore + buildPaneFromManifest | pending | | | |
+| 2.2 | paramStore + buildPaneFromManifest | done | task/2-2-param-store-build-pane | 2026-04-15 | All 4 levels green in 1 iteration; 34 new unit tests (95 total across 10 files); dev-hook `__engine.getParam` + `setParam` added (architecture skill updated — promoted from Task 2.5 to 2.2); `<Panel />` mounts Tweakpane via useEffect + disposes idempotently under StrictMode; `buildPaneFromManifest` skips tab when only one page, Essentials plugin registered before any blade. L4 validates the dev-hook shape (Panel itself not yet rendered in App — follow-up in Task 2.5). |
 | 2.3 | Seeded grid generator + 2D overlay rendering | pending | | | |
 | 2.4 | Dotted-circle blobs + xy labels | pending | | | |
 | 2.5 | handTrackingMosaic manifest + registration | pending | | | |
