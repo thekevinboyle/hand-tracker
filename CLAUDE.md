@@ -59,7 +59,7 @@ Every task file must include all four levels. The Ralph loop runs them in order 
 | L1 | `pnpm biome check <paths> && pnpm tsc --noEmit` | Syntax + style + types |
 | L2 | `pnpm vitest run <unit-paths>` | Pure logic |
 | L3 | task-specific (`pnpm build` / integration script / component test) | Cross-module wiring |
-| L4 | `pnpm test:e2e -- --grep "Task N.M:"` | User-emulating browser flow |
+| L4 | `pnpm test:e2e --grep "Task N.M:"` | User-emulating browser flow |
 
 Describe blocks in `tests/e2e/*.spec.ts` MUST start with `Task N.M:` so `--grep` matches them.
 

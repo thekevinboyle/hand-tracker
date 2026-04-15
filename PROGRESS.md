@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 1 pending — scaffold + orchestration complete, no implementation tasks started
+**Current Phase**: Phase 1 in progress — Task 1.1 done, 1.2 next
 **Last updated**: 2026-04-15
 
 ---
@@ -11,7 +11,7 @@
 | Phase | Status | Tasks Done | Total | Notes |
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
-| 1: Foundation | pending | 0 | 7 | Camera + MediaPipe + rVFC loop |
+| 1: Foundation | in-progress | 1 | 7 | Camera + MediaPipe + rVFC loop |
 | 2: Engine + Overlay | pending | 0 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
@@ -26,7 +26,7 @@
 
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
-| 1.1 | Harden scaffold + CI | pending | | | |
+| 1.1 | Harden scaffold + CI | done | task/1-1-scaffold-ci | 2026-04-15 | All 4 levels green; CLAUDE.md L4 cmd form fixed |
 | 1.2 | useCamera hook (8-state machine) | pending | | | |
 | 1.3 | Error-state UI + pre-prompt card | pending | | | |
 | 1.4 | MediaPipe HandLandmarker init + singleton | pending | | | |
