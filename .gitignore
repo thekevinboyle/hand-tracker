@@ -39,3 +39,7 @@ reports/**/*.png
 *.sln
 *.sw?
 .claude/scheduled_tasks.lock
+
+# Vercel CLI local link metadata (project + org IDs; not secret but
+# workspace-scoped — each contributor runs `vercel link` themselves).
+.vercel
