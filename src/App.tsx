@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Pane } from 'tweakpane';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
@@ -8,6 +9,7 @@ import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
+import { PresetBar } from './ui/PresetBar';
 import { Stage, type StageHandle } from './ui/Stage';
 
 export function App() {
@@ -23,6 +25,10 @@ export function App() {
     setTextureGen((g) => g + 1);
   }, []);
   const stageRef = useRef<StageHandle | null>(null);
+  // Task 4.4: lifted so <PresetBar /> and <Panel /> share the same
+  // Tweakpane instance. Panel populates on mount; PresetBar consumes on
+  // each cycle for pane.refresh().
+  const paneRef = useRef<Pane | null>(null);
 
   // Render-loop lifetime is owned here, NOT in Stage.tsx (see
   // hand-tracker-fx-architecture skill). Stage's onVideoReady populates the
@@ -116,7 +122,8 @@ export function App() {
             onVideoReady={(el) => setVideoEl(el)}
             onTextureRecreated={handleTextureRecreated}
           />
-          <Panel manifest={handTrackingMosaicManifest} />
+          <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
+          <PresetBar paneRef={paneRef} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error

@@ -24,6 +24,7 @@ import {
   loadPreset,
   savePreset,
 } from '../engine/presets';
+import { presetCycler } from './PresetCycler';
 
 export type PresetActionsProps = {
   paneRef: RefObject<Pane | null>;
@@ -66,6 +67,9 @@ export function PresetActions({ paneRef }: PresetActionsProps): JSX.Element {
   function handleSave(): void {
     if (!currentName) return;
     savePreset(currentName);
+    // Task 4.4: keep the cycler's cached list + current index in sync so
+    // ArrowLeft/Right + chevrons see the fresh entry.
+    presetCycler.refresh();
   }
 
   function handleSaveAs(): void {
@@ -75,12 +79,14 @@ export function PresetActions({ paneRef }: PresetActionsProps): JSX.Element {
     if (!name) return;
     savePreset(name);
     setCurrentName(name);
+    presetCycler.refresh();
   }
 
   function handleDelete(): void {
     if (!currentName) return;
     if (!window.confirm(`Delete preset "${currentName}"?`)) return;
     deletePreset(currentName);
+    presetCycler.refresh();
   }
 
   function handleExport(): void {
@@ -96,6 +102,7 @@ export function PresetActions({ paneRef }: PresetActionsProps): JSX.Element {
     try {
       const preset = await importPresetFile(file, { loadImmediately: true });
       setCurrentName(preset.name);
+      presetCycler.refresh();
       refreshPane();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

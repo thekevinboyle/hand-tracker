@@ -16,7 +16,7 @@
  */
 
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
-import type { JSX } from 'react';
+import type { JSX, RefObject } from 'react';
 import { useEffect, useRef } from 'react';
 import type { Pane } from 'tweakpane';
 import { buildPaneFromManifest } from '../engine/buildPaneFromManifest';
@@ -26,20 +26,27 @@ import { PresetActions } from './PresetActions';
 
 export type PanelProps = {
   manifest: EffectManifest;
+  /** Optional shared ref — when provided, Panel populates it with the
+   *  Tweakpane instance on mount + nulls it on unmount. App.tsx (Task
+   *  4.4) passes a ref it also hands to <PresetBar /> so keyboard /
+   *  chevron cycling can call `pane.refresh()` after a preset load. */
+  paneRef?: RefObject<Pane | null>;
 };
 
-export function Panel({ manifest }: PanelProps): JSX.Element {
+export function Panel({ manifest, paneRef: externalPaneRef }: PanelProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Lifted so `<PresetActions>` can call `pane.refresh()` after a preset
-  // load flushes new values into paramStore's bindingTarget — Tweakpane
-  // otherwise shows stale values until the user interacts with a blade.
-  const paneRef = useRef<Pane | null>(null);
+  // Internal fallback ref so `<PresetActions>` inside this Panel can call
+  // `pane.refresh()` even when App.tsx doesn't pass its own ref down. The
+  // external ref (if supplied) is also populated so siblings like
+  // `<PresetBar />` see the same instance.
+  const internalPaneRef = useRef<Pane | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const { pane, dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
-    paneRef.current = pane;
+    internalPaneRef.current = pane;
+    if (externalPaneRef) externalPaneRef.current = pane;
     // Task 4.2: attach the Modulation section after the effect-params tree.
     // Dispose order matters — tear down the modulation subscriber + folders
     // BEFORE the pane itself so dispose() doesn't fire on an already-torn
@@ -48,13 +55,14 @@ export function Panel({ manifest }: PanelProps): JSX.Element {
     return () => {
       disposeModulation();
       dispose();
-      paneRef.current = null;
+      internalPaneRef.current = null;
+      if (externalPaneRef) externalPaneRef.current = null;
     };
-  }, [manifest]);
+  }, [manifest, externalPaneRef]);
 
   return (
     <div className="panel-container" data-testid="panel-root">
-      <PresetActions paneRef={paneRef} />
+      <PresetActions paneRef={internalPaneRef} />
       <div ref={containerRef} data-testid="params-panel" />
     </div>
   );

@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 4 in progress (4.1 + 4.2 + 4.3 done); 4.4 next
+**Current Phase**: Phase 4 in progress (4.1 + 4.2 + 4.3 + 4.4 done); 4.5 next
 **Last updated**: 2026-04-16
 
 ---
@@ -14,7 +14,7 @@
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
-| 4: Modulation, Presets, UX | in-progress | 3 | 7 | X/Y modulation, presets, record, reduced-motion |
+| 4: Modulation, Presets, UX | in-progress | 4 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
 
@@ -63,7 +63,7 @@
 | 4.1 | ModulationRoute evaluator + defaults | done | task/4-1-modulation-evaluator | 2026-04-16 | All L1-L3 green in 1 Ralph iteration (L4 N/A per task file — Task 4.R will cover); 25 new unit tests (257 total across 20 files); `src/engine/modulation.ts` exports ModulationSourceId + ModulationRoute + Landmark + applyModulation + resolveModulationSources + DEFAULT_MODULATION_ROUTES (2 routes per D13). Identity fast-path: untouched params return SAME reference; section-level structural sharing on writes. Bezier cache module-scoped + memoized per cp tuple. Integer rounding via Number.isInteger(current). Installed `@types/bezier-easing` dev dep. |
 | 4.2 | CubicBezier blade + modulation panel UI | done | task/4-2-modulation-panel-ui | 2026-04-16 | All 4 levels green (268/268 unit tests, 42/42 E2E aggregate, 3m 6s); `src/engine/modulationStore.ts` (11 unit tests — subscribe/upsert/delete/replace with structural sharing); `src/ui/ModulationPanel.ts` (buildModulationPage + addRouteControls with Enabled/Source/Target/InputRange/OutputRange/Curve/CubicBezier/Delete controls + "+ Add route" button + subscribe-driven rebuild); Panel.tsx wires it after buildPaneFromManifest; main.tsx seeds DEFAULT_MODULATION_ROUTES at startup. **Key finding:** @tweakpane/plugin-essentials v0.2.1 ships `interval` as an INPUT plugin (not a BLADE plugin) — the task file's addBlade({view:'interval'}) pattern was wrong; corrected to addBinding(host,'value') with {min,max} shape. |
 | 4.3 | Preset schema + persistence + import/export | done | task/4-3-preset-persistence | 2026-04-16 | All 4 levels green (295/295 unit tests, 42/42 E2E, 3m 6s); `src/engine/presets.ts` with Preset type (version:1 per D29) + isValidPreset manual guard (no zod) + listPresets/getPreset/savePreset/loadPreset/deletePreset + exportPresetFile/importPresetFile + DEFAULT_PRESET + initializePresetsIfEmpty. 27 new unit tests covering isValidPreset rejections (null/arrays/version:2/wrong effectId/missing fields), CRUD, round-trip, anchor-download semantics + sanitizeFilename, malformed-JSON resilience, seed-on-empty. `src/ui/PresetActions.tsx` renders Save/Save-As/Delete/Export/Import row with paneRef.refresh() after load. Panel.tsx lifts the Pane ref + wraps the tweakpane-host div. main.tsx calls initializePresetsIfEmpty. **Gotcha:** Node 25's native `globalThis.localStorage` stub shadows jsdom's Storage (no methods); patched `src/test/setup.ts` with an in-memory Storage polyfill + per-test clear. |
-| 4.4 | Preset chevron cycler + ArrowLeft/Right | pending | | | |
+| 4.4 | Preset chevron cycler + ArrowLeft/Right | done | task/4-4-preset-cycler | 2026-04-16 | All L1-L3 green (308/308 unit tests, 42/42 E2E, 3m 5s); `src/ui/PresetCycler.ts` createPresetCycler factory + singleton with getState/onChange/cycleNext/cyclePrev/goTo/refresh, wrap-around index math, load-on-cycle (not on refresh), pane.refresh() via widening cast. `src/ui/PresetBar.tsx` subscribes via useSyncExternalStore-style + useEffect, window keydown for ArrowLeft/Right with HTMLInputElement/HTMLTextAreaElement target guards, preventDefault after guard, chevrons disabled when presets.length<=1. 13 component/cycler tests (chevron clicks, wrap, keydown, input-target-guard, unmount cleanup, refresh+clamp). App.tsx lifts paneRef + mounts PresetBar. PresetActions now calls `presetCycler.refresh()` after save/saveAs/delete/import. |
 | 4.5 | Record → MediaRecorder → webm download | pending | | | |
 | 4.6 | prefers-reduced-motion handling | pending | | | |
 | 4.R | Phase 4 Regression | pending | | | |
