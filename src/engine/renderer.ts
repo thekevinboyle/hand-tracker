@@ -138,3 +138,97 @@ export function resizeRenderer(renderer: Renderer, canvas: HTMLCanvasElement): P
   }
   return [currentCanvas.width, currentCanvas.height] as const;
 }
+
+// ---------------------------------------------------------------------------
+// Task 3.5 — context-loss recovery
+// ---------------------------------------------------------------------------
+
+/** Callbacks passed to `attachContextLossHandlers`. `onLost` runs synchronously
+ *  inside the `webglcontextlost` event; the helper wraps it to call
+ *  `event.preventDefault()` BEFORE invoking the caller's `onLost` so the
+ *  browser is guaranteed to fire `webglcontextrestored` later. `onRestored`
+ *  fires without `preventDefault` (that's `onLost`-only). */
+export type ContextLossHandlers = {
+  onLost: (event: Event) => void;
+  onRestored: (event: Event) => void;
+};
+
+/**
+ * Attach `webglcontextlost` + `webglcontextrestored` listeners to a canvas.
+ * Returns a detach function — callers invoke it from their useEffect
+ * cleanup to avoid leaking listeners across StrictMode double-mount.
+ *
+ * CRITICAL: `preventDefault()` must be called synchronously in the handler
+ * body; running it after an `await` causes the browser to give up on
+ * restoration. This helper wraps the caller's `onLost` so the order is
+ * always correct — callers cannot forget.
+ */
+export function attachContextLossHandlers(
+  canvas: HTMLCanvasElement,
+  handlers: ContextLossHandlers,
+): () => void {
+  const onLostWrapped = (e: Event): void => {
+    // preventDefault() FIRST — required for webglcontextrestored to fire.
+    e.preventDefault();
+    handlers.onLost(e);
+  };
+  const onRestoredWrapped = (e: Event): void => {
+    handlers.onRestored(e);
+  };
+  canvas.addEventListener('webglcontextlost', onLostWrapped, false);
+  canvas.addEventListener('webglcontextrestored', onRestoredWrapped, false);
+  return () => {
+    canvas.removeEventListener('webglcontextlost', onLostWrapped, false);
+    canvas.removeEventListener('webglcontextrestored', onRestoredWrapped, false);
+  };
+}
+
+/** Arguments to `disposeRenderer`. Every handle is optional so callers can
+ *  invoke the cleanup path at any stage of construction — a partial-mount
+ *  (e.g. renderer created but effect not yet built) still cleans up safely. */
+export type DisposeRendererArgs = {
+  renderer: Renderer | null;
+  texture: Texture | null;
+  detachCtxLoss?: () => void;
+  resizeObserver?: ResizeObserver | null;
+  /** rVFC handle (if the caller owns an rVFC loop). Pass `undefined` when
+   *  the loop is owned elsewhere (Hand Tracker FX: App.tsx). */
+  rVFCHandle?: number | undefined;
+  /** Required when `rVFCHandle` is defined so `cancelVideoFrameCallback`
+   *  targets the right element. */
+  videoEl?: HTMLVideoElement | null;
+  /** When `true`, call `WEBGL_lose_context.loseContext()` after texture
+   *  deletion so the browser releases the underlying WebGL resources —
+   *  safe to skip if the caller is about to unmount the canvas anyway. */
+  forceLoseContext?: boolean;
+};
+
+/**
+ * Fully tear down a Task-3.1 render bundle. Idempotent under StrictMode
+ * double-invocation: `gl.deleteTexture(null)` is silently ignored by the
+ * spec, `rVFCHandle === undefined` short-circuits the cancel, and the
+ * detach function is a no-op if the listeners were never attached.
+ *
+ * Order matters:
+ *   1. Cancel rVFC (stop any in-flight frame callback)
+ *   2. Disconnect ResizeObserver (stop resize-driven uniform updates)
+ *   3. Detach context-loss listeners (stop handling loss during teardown)
+ *   4. Delete the video texture
+ *   5. (Optional) forceLoseContext — release the underlying GL slot
+ */
+export function disposeRenderer(args: DisposeRendererArgs): void {
+  if (args.rVFCHandle !== undefined && args.videoEl) {
+    args.videoEl.cancelVideoFrameCallback(args.rVFCHandle);
+  }
+  args.resizeObserver?.disconnect();
+  args.detachCtxLoss?.();
+  if (args.renderer && args.texture) {
+    // ogl Texture has no destroy() method in 1.0.11; go direct to gl.
+    // deleteTexture tolerates null + post-loss dead handles silently.
+    args.renderer.gl.deleteTexture(args.texture.texture);
+  }
+  if (args.forceLoseContext && args.renderer) {
+    const ext = args.renderer.gl.getExtension('WEBGL_lose_context');
+    ext?.loseContext();
+  }
+}

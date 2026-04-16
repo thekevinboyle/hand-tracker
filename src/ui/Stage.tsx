@@ -1,6 +1,12 @@
 import type { Renderer, Texture } from 'ogl';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { createOglRenderer, createVideoTexture, resizeRenderer } from '../engine/renderer';
+import {
+  attachContextLossHandlers,
+  createOglRenderer,
+  createVideoTexture,
+  disposeRenderer,
+  resizeRenderer,
+} from '../engine/renderer';
 import { setRenderer } from '../engine/rendererRef';
 import { setVideoTexture } from '../engine/videoTextureRef';
 import './Stage.css';
@@ -27,6 +33,16 @@ export interface StageProps {
    * evolution" for the final shape after Phase 3 modifications.
    */
   onVideoReady?: (videoEl: HTMLVideoElement) => void;
+  /**
+   * Fired whenever Stage creates a new video `Texture`. The initial mount
+   * emits once; a `webglcontextrestored` event triggers a second emit after
+   * Stage re-creates the texture against the recovered context. Callers
+   * (App.tsx) use this to dispose + rebuild any `EffectInstance` whose
+   * Program bound the previous texture reference — ogl's uniform cache is
+   * reference-identity, so the old program sampler stays pointed at a dead
+   * GL handle until the effect is re-constructed.
+   */
+  onTextureRecreated?: () => void;
 }
 
 /**
@@ -45,7 +61,7 @@ export interface StageProps {
  * the rVFC-driven loop once the <video> has a live srcObject.
  */
 export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
-  { stream, mirror = true, onVideoReady },
+  { stream, mirror = true, onVideoReady, onTextureRecreated },
   ref,
 ) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -53,6 +69,11 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
   const textureRef = useRef<Texture | null>(null);
+  // Keep the prop in a ref so the renderer useEffect's deps can stay `[]` —
+  // otherwise a parent re-render that hands us a different `onTextureRecreated`
+  // callback identity would tear down + recreate the whole WebGL bundle.
+  const onTextureRecreatedRef = useRef(onTextureRecreated);
+  onTextureRecreatedRef.current = onTextureRecreated;
 
   useImperativeHandle(
     ref,
@@ -123,26 +144,49 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
     return () => window.removeEventListener('resize', resize);
   }, []);
 
-  // ogl Renderer + video Texture lifecycle (Task 3.1). Created on mount,
-  // torn down idempotently on unmount — StrictMode's dev double-invoke runs
-  // the cleanup between the two mount passes, so `gl.deleteTexture` +
-  // `WEBGL_lose_context` run exactly once per mount/unmount cycle.
+  // ogl Renderer + video Texture lifecycle (Task 3.1 + Task 3.5).
   //
-  // The renderer owns `webglRef.current.width` / `.height` via `setSize`
-  // (ResizeObserver picks up both DOM CSS changes and devicePixelRatio
-  // moves). The raw `texture.texture` WebGLTexture handle is also published
-  // to the engine's `videoTextureRef` broker so devHooks + the Phase 3
-  // effect render() can read it without prop-drilling.
+  // Task 3.1 rules still apply: the Renderer is created on mount, torn down
+  // idempotently on unmount, and owns `canvas.width/height` via `setSize`.
+  // Task 3.5 adds context-loss recovery — if the GPU resets (driver sleep,
+  // tab backgrounding, explicit `loseContext()`), the canvas keeps its
+  // WebGL2 context reference but every Texture / Program / Buffer against
+  // it becomes invalid. The recovery path:
+  //
+  //   1. `webglcontextlost` → cancel the texture (it's dead anyway), null
+  //      the broker refs so any effect.render() mid-flight bails out, keep
+  //      the Renderer reference (ogl re-uses the same gl on restore).
+  //   2. `webglcontextrestored` → allocate a fresh Texture via
+  //      `createVideoTexture(bundle.gl)`, publish through the broker, and
+  //      fire `onTextureRecreated` so App.tsx tears down + rebuilds the
+  //      EffectInstance whose Program bound the dead texture.
+  //
+  // The effect is idempotent under StrictMode double-mount because
+  // `disposeRenderer` tolerates null handles and detach functions.
   useEffect(() => {
     const canvas = webglRef.current;
     if (!canvas) return;
 
     const bundle = createOglRenderer(canvas);
-    const texture = createVideoTexture(bundle.gl);
     rendererRef.current = bundle.renderer;
-    textureRef.current = texture;
-    setVideoTexture(texture);
     setRenderer(bundle.renderer);
+
+    function mountTexture(): void {
+      const texture = createVideoTexture(bundle.gl);
+      textureRef.current = texture;
+      setVideoTexture(texture);
+    }
+    function unmountTexture(): void {
+      const t = textureRef.current;
+      if (t) {
+        // deleteTexture tolerates post-loss dead handles silently.
+        bundle.gl.deleteTexture(t.texture);
+        textureRef.current = null;
+      }
+      setVideoTexture(null);
+    }
+
+    mountTexture();
 
     const doResize = () => resizeRenderer(bundle.renderer, canvas);
     doResize();
@@ -154,19 +198,36 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
       observer.observe(canvas.parentElement);
     }
 
+    const detachCtxLoss = attachContextLossHandlers(canvas, {
+      onLost: () => {
+        console.warn('[hand-tracker-fx] WebGL context lost');
+        unmountTexture();
+      },
+      onRestored: () => {
+        console.info('[hand-tracker-fx] WebGL context restored — reinitializing');
+        mountTexture();
+        onTextureRecreatedRef.current?.();
+      },
+    });
+
     return () => {
       window.removeEventListener('resize', doResize);
-      observer?.disconnect();
-      // ogl Texture has no destroy(); delete via raw gl handle.
-      bundle.gl.deleteTexture(texture.texture);
-      // Release the GPU context so a remount can allocate a fresh one.
-      const loseExt = bundle.gl.getExtension('WEBGL_lose_context');
-      loseExt?.loseContext();
+      disposeRenderer({
+        renderer: bundle.renderer,
+        texture: textureRef.current,
+        resizeObserver: observer,
+        detachCtxLoss,
+        // Release the GPU slot so a remount can allocate a fresh one.
+        forceLoseContext: true,
+      });
       setVideoTexture(null);
       setRenderer(null);
       rendererRef.current = null;
       textureRef.current = null;
     };
+    // Deps MUST stay empty — see the onTextureRecreatedRef pattern above. A
+    // parent re-render that swaps the callback identity must NOT tear down
+    // the live WebGL bundle; that path is owned by context-loss + unmount.
   }, []);
 
   return (

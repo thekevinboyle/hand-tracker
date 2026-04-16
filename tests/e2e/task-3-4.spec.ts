@@ -89,13 +89,15 @@ test.describe('Task 3.4: effect render wire-up', () => {
       w.__handTracker?.__engine?.setFakeLandmarks?.(lms);
     }, spreadHandLandmarks());
 
+    // Cold-start MediaPipe + first rVFC tick can take several seconds on a
+    // fresh page — bump past the default 5 s to avoid a false flake.
     await page.waitForFunction(
       () => {
         const w = window as unknown as { __handTracker?: HandTrackerHook };
         return (w.__handTracker?.__engine?.getLastRegionCount?.() ?? 0) > 0;
       },
       undefined,
-      { timeout: 5_000 },
+      { timeout: 15_000 },
     );
     const count = await page.evaluate(() => {
       const w = window as unknown as { __handTracker?: HandTrackerHook };
@@ -127,7 +129,7 @@ test.describe('Task 3.4: effect render wire-up', () => {
         return (w.__handTracker?.__engine?.getLastRegionCount?.() ?? 0) > 0;
       },
       undefined,
-      { timeout: 5_000 },
+      { timeout: 15_000 },
     );
 
     for (const tileSize of [4, 16, 32, 64]) {

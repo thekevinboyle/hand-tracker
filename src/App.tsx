@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
@@ -14,6 +14,14 @@ export function App() {
   const { state, retry, stream } = useCamera();
   const [trackerError, setTrackerError] = useState<unknown>(null);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  // Task 3.5: bumped whenever Stage re-creates the video Texture after a
+  // `webglcontextrestored` event. The render-loop effect depends on this
+  // so it tears down the current EffectInstance (whose Program's sampler
+  // was bound to the now-dead texture) and rebuilds from the fresh one.
+  const [textureGen, setTextureGen] = useState(0);
+  const handleTextureRecreated = useCallback(() => {
+    setTextureGen((g) => g + 1);
+  }, []);
   const stageRef = useRef<StageHandle | null>(null);
 
   // Render-loop lifetime is owned here, NOT in Stage.tsx (see
@@ -22,6 +30,12 @@ export function App() {
   // resolved `play()` (or rejected — either way we can start rVFC). The
   // effect tears down + restarts cleanly on StrictMode double-mount because
   // startRenderLoop.stop() is idempotent.
+  //
+  // `textureGen` is the Task 3.5 retrigger — bumping it is the only way to
+  // force re-mount after Stage re-creates the video Texture on
+  // `webglcontextrestored`. The value isn't read inside the effect body;
+  // the dependency is load-bearing, not accidental.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: textureGen is a re-run-on-change signal
   useEffect(() => {
     if (state !== 'GRANTED' || !videoEl) return;
 
@@ -84,7 +98,7 @@ export function App() {
         effectInstance = null;
       }
     };
-  }, [state, videoEl]);
+  }, [state, videoEl, textureGen]);
 
   return (
     <main className="app-shell">
@@ -95,7 +109,13 @@ export function App() {
       {state !== 'PROMPT' && state !== 'GRANTED' && <ErrorStates state={state} onRetry={retry} />}
       {state === 'GRANTED' && (
         <>
-          <Stage ref={stageRef} stream={stream} mirror onVideoReady={(el) => setVideoEl(el)} />
+          <Stage
+            ref={stageRef}
+            stream={stream}
+            mirror
+            onVideoReady={(el) => setVideoEl(el)}
+            onTextureRecreated={handleTextureRecreated}
+          />
           <Panel manifest={handTrackingMosaicManifest} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>

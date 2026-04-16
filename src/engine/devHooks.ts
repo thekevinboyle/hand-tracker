@@ -10,6 +10,9 @@
  * force a specific landmark payload for deterministic blob/region tests.
  * Task 3.1 adds `__engine.getVideoTextureHandle` — returns the raw
  * `WebGLTexture` created by Stage's ogl renderer, or `null` pre-mount.
+ * Task 3.5 adds `__engine.forceContextLoss` + `__engine.forceContextRestore`
+ * — convenience wrappers around `WEBGL_lose_context` for DevTools manual
+ * testing and the L4 recovery spec.
  * Task 3.2 adds `__engine.testCompileShaders` — compiles the mosaic
  * VERTEX/FRAGMENT strings in a throwaway WebGL2 context and returns a
  * `{ vertex, fragment, log }` report so Playwright E2E can gate the real
@@ -35,6 +38,7 @@ import { FRAGMENT_SHADER, VERTEX_SHADER } from '../effects/handTrackingMosaic/sh
 import { getLandmarkOverride, setLandmarkOverride } from './landmarkOverride';
 import { paramStore } from './paramStore';
 import { listEffects } from './registry';
+import { getRenderer } from './rendererRef';
 import { getVideoTextureHandle } from './videoTextureRef';
 
 const FPS_SAMPLE_MS = 3000;
@@ -150,6 +154,46 @@ function testCompileShaders(): { vertex: boolean; fragment: boolean; log: string
 }
 
 /**
+ * Force the WebGL2 context on the mounted webgl-canvas into the lost state
+ * (Task 3.5). The extension is resolved + cached on first call because on
+ * a lost context `gl.getExtension('WEBGL_lose_context')` can return null in
+ * some Chromium versions — breaking the restore path. Caching the handle
+ * ensures `forceContextRestore()` keeps working across the loss cycle.
+ *
+ * Returns `true` when the extension was found + invoked; `false` if the
+ * renderer isn't mounted yet or the hardware doesn't support the
+ * extension. The browser fires `webglcontextlost` asynchronously on the
+ * next task tick — callers must await before inspecting render state.
+ */
+let cachedLoseContextExt: WEBGL_lose_context | null = null;
+
+function resolveLoseContextExt(): WEBGL_lose_context | null {
+  if (cachedLoseContextExt) return cachedLoseContextExt;
+  const renderer = getRenderer();
+  if (!renderer) return null;
+  cachedLoseContextExt = renderer.gl.getExtension('WEBGL_lose_context');
+  return cachedLoseContextExt;
+}
+
+function forceContextLoss(): boolean {
+  const ext = resolveLoseContextExt();
+  if (!ext) return false;
+  ext.loseContext();
+  return true;
+}
+
+/** Restore a previously-lost WebGL2 context on the mounted webgl-canvas.
+ *  Uses the same cached extension handle as `forceContextLoss` — critical
+ *  because some Chromium versions return null for `getExtension` on a
+ *  lost context. */
+function forceContextRestore(): boolean {
+  const ext = resolveLoseContextExt();
+  if (!ext) return false;
+  ext.restoreContext();
+  return true;
+}
+
+/**
  * Compute the current frame's active mosaic regions using the injected /
  * detected landmarks (whichever the render loop would have seen this tick).
  * The caller passes grid geometry + padding so the test can exercise a
@@ -197,6 +241,8 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
       getVideoTextureHandle,
       testCompileShaders,
       computeActiveRegions: computeActiveRegionsHook,
+      forceContextLoss,
+      forceContextRestore,
     },
   };
 }
