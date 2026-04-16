@@ -1,6 +1,7 @@
 import type { HandLandmarker } from '@mediapipe/tasks-vision';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { __resetDevHookState, getFPS, getLandmarkCount } from './devHooks';
+import { __resetLandmarkOverride, setLandmarkOverride } from './landmarkOverride';
 import { startRenderLoop } from './renderLoop';
 
 type RvfcCallback = (now: number, meta: Record<string, unknown>) => void;
@@ -40,10 +41,12 @@ function fakeLandmarker(
 describe('startRenderLoop', () => {
   beforeEach(() => {
     __resetDevHookState();
+    __resetLandmarkOverride();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    __resetLandmarkOverride();
   });
 
   it('invokes onFrame each tick with monotonic timeMs and videoSize + empty params', () => {
@@ -183,5 +186,49 @@ describe('startRenderLoop', () => {
     expect(frameLandmarks).toBeNull();
     expect(getLandmarkCount()).toBe(0);
     handle.stop();
+  });
+
+  it('setLandmarkOverride substitutes the payload for downstream consumers', () => {
+    const video = fakeVideo();
+    const lm = fakeLandmarker({ landmarks: [] });
+    const injected = Array.from({ length: 21 }, (_, i) => ({ x: i / 21, y: 0.5, z: 0 }));
+    setLandmarkOverride(injected);
+    let seenLandmarks: unknown = 'unset';
+    const handle = startRenderLoop({
+      video,
+      landmarker: lm,
+      onFrame: (ctx) => {
+        seenLandmarks = ctx.landmarks;
+      },
+    });
+    video._tick(100);
+    expect(seenLandmarks).toEqual(injected);
+    // MediaPipe is still called — override only swaps the downstream payload —
+    // so the monotonic-timestamp invariant stays intact across override toggles.
+    expect(lm.detectForVideo).toHaveBeenCalledTimes(1);
+    expect(getLandmarkCount()).toBe(21);
+    handle.stop();
+  });
+
+  it('clearing the override (null) restores MediaPipe detection', () => {
+    const video = fakeVideo();
+    const realLm = [{ x: 0.1, y: 0.2, z: 0 }];
+    const lm = fakeLandmarker({ landmarks: [realLm] });
+    const injected = [{ x: 0.9, y: 0.9, z: 0 }];
+    setLandmarkOverride(injected);
+    const frames: Array<Array<{ x: number; y: number; z: number }> | null> = [];
+    const handle = startRenderLoop({
+      video,
+      landmarker: lm,
+      onFrame: (ctx) => {
+        frames.push(ctx.landmarks);
+      },
+    });
+    video._tick(100);
+    setLandmarkOverride(null);
+    video._tick(200);
+    handle.stop();
+    expect(frames[0]).toEqual(injected);
+    expect(frames[1]).toEqual(realLm);
   });
 });

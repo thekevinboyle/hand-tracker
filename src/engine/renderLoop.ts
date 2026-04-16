@@ -1,5 +1,6 @@
 import type { HandLandmarker } from '@mediapipe/tasks-vision';
 import { updateFpsSample, updateLandmarkCount } from './devHooks';
+import { getLandmarkOverride } from './landmarkOverride';
 import type { FrameContext, Landmark } from './types';
 
 export interface StartRenderLoopParams {
@@ -44,7 +45,11 @@ export function startRenderLoop(params: StartRenderLoopParams): RenderLoopHandle
     try {
       if (video.readyState >= HAVE_CURRENT_DATA) {
         const result = landmarker.detectForVideo(video, nowMs);
-        const landmarks: Landmark[] | null = result.landmarks[0] ?? null;
+        const detected: Landmark[] | null = result.landmarks[0] ?? null;
+        // Test-only override (Task 2.R hotfix). Detection still runs every
+        // frame so MediaPipe's monotonic-timestamp invariant is preserved —
+        // we only swap the payload passed to `onFrame` + the dev-hook count.
+        const landmarks: Landmark[] | null = getLandmarkOverride() ?? detected;
         updateFpsSample(nowMs);
         updateLandmarkCount(landmarks ? landmarks.length : 0);
         const ctx: FrameContext = {
