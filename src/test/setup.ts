@@ -1,6 +1,50 @@
 import '@testing-library/jest-dom/vitest';
 import 'vitest-canvas-mock';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
+
+// Node 25+ ships a stub `globalThis.localStorage` that shadows jsdom's real
+// `Storage` implementation — `typeof localStorage === 'object'` but none of
+// the Storage methods are present. Replace it with a live Map-backed
+// implementation that matches the Web Storage contract so unit tests that
+// round-trip presets / prefs through localStorage behave like a browser.
+// Cleared in beforeEach so tests stay order-independent.
+class InMemoryStorage implements Storage {
+  private readonly data = new Map<string, string>();
+  get length(): number {
+    return this.data.size;
+  }
+  clear(): void {
+    this.data.clear();
+  }
+  getItem(key: string): string | null {
+    return this.data.has(key) ? (this.data.get(key) ?? null) : null;
+  }
+  key(index: number): string | null {
+    return Array.from(this.data.keys())[index] ?? null;
+  }
+  removeItem(key: string): void {
+    this.data.delete(key);
+  }
+  setItem(key: string, value: string): void {
+    this.data.set(key, String(value));
+  }
+}
+const memoryLocalStorage = new InMemoryStorage();
+Object.defineProperty(globalThis, 'localStorage', {
+  value: memoryLocalStorage,
+  writable: true,
+  configurable: true,
+});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'localStorage', {
+    value: memoryLocalStorage,
+    writable: true,
+    configurable: true,
+  });
+}
+beforeEach(() => {
+  memoryLocalStorage.clear();
+});
 
 // Minimal `ogl` stub so components that mount a Stage (which creates a
 // Renderer + Texture in a useEffect) don't crash in jsdom — the real WebGL

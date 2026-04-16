@@ -18,9 +18,11 @@
 import * as EssentialsPlugin from '@tweakpane/plugin-essentials';
 import type { JSX } from 'react';
 import { useEffect, useRef } from 'react';
+import type { Pane } from 'tweakpane';
 import { buildPaneFromManifest } from '../engine/buildPaneFromManifest';
 import type { EffectManifest } from '../engine/manifest';
 import { buildModulationPage } from './ModulationPanel';
+import { PresetActions } from './PresetActions';
 
 export type PanelProps = {
   manifest: EffectManifest;
@@ -28,11 +30,16 @@ export type PanelProps = {
 
 export function Panel({ manifest }: PanelProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Lifted so `<PresetActions>` can call `pane.refresh()` after a preset
+  // load flushes new values into paramStore's bindingTarget — Tweakpane
+  // otherwise shows stale values until the user interacts with a blade.
+  const paneRef = useRef<Pane | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const { pane, dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
+    paneRef.current = pane;
     // Task 4.2: attach the Modulation section after the effect-params tree.
     // Dispose order matters — tear down the modulation subscriber + folders
     // BEFORE the pane itself so dispose() doesn't fire on an already-torn
@@ -41,8 +48,14 @@ export function Panel({ manifest }: PanelProps): JSX.Element {
     return () => {
       disposeModulation();
       dispose();
+      paneRef.current = null;
     };
   }, [manifest]);
 
-  return <div ref={containerRef} className="panel-container" data-testid="params-panel" />;
+  return (
+    <div className="panel-container" data-testid="panel-root">
+      <PresetActions paneRef={paneRef} />
+      <div ref={containerRef} data-testid="params-panel" />
+    </div>
+  );
 }
