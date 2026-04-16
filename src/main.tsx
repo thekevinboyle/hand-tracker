@@ -5,6 +5,7 @@ import { modulationStore } from './engine/modulationStore';
 import { initializePresetsIfEmpty } from './engine/presets';
 import './index.css';
 import { App } from './App';
+import { presetCycler } from './ui/PresetCycler';
 // Side-effect import: seeds paramStore + registers the handTrackingMosaic effect
 // in the global registry BEFORE React renders. Must be AFTER runtime imports.
 import './effects/handTrackingMosaic';
@@ -20,6 +21,12 @@ modulationStore.replaceRoutes(DEFAULT_MODULATION_ROUTES);
 // Order matters — must follow the modulation seed above so the snapshot
 // captures the real default routes, not an empty list.
 initializePresetsIfEmpty();
+
+// Task 4.4: the PresetCycler singleton was constructed at module-import
+// time (via the App → PresetBar → PresetCycler chain) BEFORE the preset
+// store was seeded, so its initial snapshot captured an empty list.
+// Refresh now so the first render already shows the Default preset.
+presetCycler.refresh();
 
 const rootEl = document.getElementById('root');
 if (!rootEl) {

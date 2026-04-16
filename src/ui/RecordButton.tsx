@@ -23,13 +23,15 @@ export type RecordButtonProps = {
 
 const containerStyle: React.CSSProperties = {
   position: 'fixed',
-  top: 12,
+  // Sit below the PresetActions bar (which occupies top: 0..~40 with
+  // zIndex 100) but above Tweakpane's default-fixed panel.
+  top: 50,
   right: 12,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-end',
   gap: 4,
-  zIndex: 10,
+  zIndex: 110,
 };
 const buttonBaseStyle: React.CSSProperties = {
   display: 'inline-flex',

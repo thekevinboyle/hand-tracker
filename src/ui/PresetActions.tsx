@@ -46,11 +46,19 @@ const disabledButtonStyle: React.CSSProperties = {
   cursor: 'not-allowed',
 };
 const barStyle: React.CSSProperties = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
   display: 'flex',
   gap: 6,
   padding: '6px 8px',
   background: '#111',
   borderBottom: '1px solid #2d2d2d',
+  // Sit above Tweakpane's default-fixed panel so Save / Import /
+  // Export etc. remain clickable even when the pane stretches across
+  // the top-right of the viewport.
+  zIndex: 100,
 };
 
 export function PresetActions({ paneRef }: PresetActionsProps): JSX.Element {

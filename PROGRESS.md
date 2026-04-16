@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 4 in progress (4.1 + 4.2 + 4.3 + 4.4 + 4.5 + 4.6 done); 4.R next
+**Current Phase**: Phase 4 complete (all 7 tasks done); Phase 5 next
 **Last updated**: 2026-04-16
 
 ---
@@ -14,7 +14,7 @@
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
-| 4: Modulation, Presets, UX | in-progress | 6 | 7 | X/Y modulation, presets, record, reduced-motion |
+| 4: Modulation, Presets, UX | done | 7 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
 
@@ -66,7 +66,7 @@
 | 4.4 | Preset chevron cycler + ArrowLeft/Right | done | task/4-4-preset-cycler | 2026-04-16 | All L1-L3 green (308/308 unit tests, 42/42 E2E, 3m 5s); `src/ui/PresetCycler.ts` createPresetCycler factory + singleton with getState/onChange/cycleNext/cyclePrev/goTo/refresh, wrap-around index math, load-on-cycle (not on refresh), pane.refresh() via widening cast. `src/ui/PresetBar.tsx` subscribes via useSyncExternalStore-style + useEffect, window keydown for ArrowLeft/Right with HTMLInputElement/HTMLTextAreaElement target guards, preventDefault after guard, chevrons disabled when presets.length<=1. 13 component/cycler tests (chevron clicks, wrap, keydown, input-target-guard, unmount cleanup, refresh+clamp). App.tsx lifts paneRef + mounts PresetBar. PresetActions now calls `presetCycler.refresh()` after save/saveAs/delete/import. |
 | 4.5 | Record → MediaRecorder → webm download | done | task/4-5-record-webm | 2026-04-16 | All 4 levels green (321/321 unit tests, 44/44 E2E, 3m 15s); `src/ui/useRecorder.ts` hook with pickMimeType codec chain (vp9→vp8→plain webm) + captureStream(30) + MediaRecorder single-blob (no timeslice) + anchor click + revoke via setTimeout(0); unmount safety stops in-flight recorder + track.stop(). `src/ui/RecordButton.tsx` fixed-top-right button with red recording state + mm:ss elapsed + error surfacing. Captures the 2D overlay canvas (Task 3.4 pre-composites the WebGL mosaic into it per the D28 precondition). 13 new unit tests + 2 new E2E specs exercising the real Chromium MediaRecorder + Playwright `download` event. Filename: `hand-tracker-fx-{ISO with colons→hyphens}.webm`. |
 | 4.6 | prefers-reduced-motion handling | done | task/4-6-reduced-motion | 2026-04-16 | All L1-L3 green (330/330 unit tests, 44/44 E2E, 3m 18s); `src/engine/reducedMotion.ts` singleton with getIsReduced/subscribe/dispose, caches matchMedia at module load, ONE media-query listener fans out to N subscribers, graceful fallback when `window.matchMedia` is undefined. 9 new unit tests (init value, change propagation, unsubscribe, multi-subscribers, dispose, absent-matchMedia no-op, addEventListener usage). **Task 4.1 render-loop integration also completed here** — App.tsx onFrame now calls resolveModulationSources + applyModulation behind `if (!reducedMotion.getIsReduced())`, with the identity-fast-path-then-paramStore.replace gate for minimal overhead. |
-| 4.R | Phase 4 Regression | pending | | | |
+| 4.R | Phase 4 Regression | done | task/4-R-phase-4-regression | 2026-04-16 | All 4 levels green in 1 Ralph iteration (3 small fixes: presetCycler.refresh() in main.tsx bootstrap order + PresetActions/RecordButton z-indexes above Tweakpane default panel). `tests/e2e/phase-4-regression.spec.ts` — single spec walking the full journey: GRANTED → default preset → modulation-drives-tileSize → Save As (dialog) → cycle via chevron → ArrowLeft → record+download `.webm` → reduced-motion pauses modulation → zero console errors. 6 walkthrough PNG artifacts at `reports/phase-4-walkthrough/`. 45/45 aggregate E2E green (3m 30s). SHIP decision. Report: `reports/phase-4-regression.md`. |
 
 ### Phase 5: Deploy + Comprehensive E2E
 
@@ -126,7 +126,20 @@
 - Report: `reports/phase-3-regression.md`
 
 ### Phase 4 Regression
-- Status: pending
+- Status: complete
+- Date: 2026-04-16
+- Ralph iterations: 1 (3 small fixes)
+- L1: biome 92 files + tsc 0 errors — green
+- L2: 330 / 330 across 25 files (1.6 s)
+- L3: `pnpm build --mode test` 105 ms
+- L4a: 45 / 45 Phase 1-4 aggregate specs pass (3 m 30 s)
+- L4b: 1 / 1 Task 4.R spec (11.0 s)
+- 6 walkthrough PNG artifacts captured (gitignored)
+- Full user journey covered: GRANTED → Default preset → modulation (landmark[8].x=0.9 → tileSize>48) → Save As "Phase4-Test" → chevron cycles → ArrowLeft returns → Record→.webm download → emulateMedia(reducedMotion:reduce) freezes tileSize → 0 console errors
+- Bootstrap fix: `presetCycler.refresh()` after `initializePresetsIfEmpty()` (cycler singleton was constructed before presets seeded)
+- UI z-index fixes: PresetActions + RecordButton bumped above Tweakpane's default-fixed panel
+- Decision: SHIP — Phase 5 greenlit
+- Report: `reports/phase-4-regression.md`
 
 ### Phase 5 Final
 - Status: pending
