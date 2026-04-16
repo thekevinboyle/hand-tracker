@@ -14,13 +14,21 @@
  * VERTEX/FRAGMENT strings in a throwaway WebGL2 context and returns a
  * `{ vertex, fragment, log }` report so Playwright E2E can gate the real
  * driver's acceptance of the shader source.
+ * Task 3.3 adds `__engine.computeActiveRegions` — invokes the hand-polygon
+ * region derivation with a caller-supplied grid + padding and the currently
+ * injected/detected landmarks, so Playwright E2E can assert deterministic
+ * UV rects without reaching into the render loop's private timing.
  * Gated by `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the
  * block tree-shakes in production.
  */
 
 import { __getLastBlobCount, __getLastGridLayout } from '../effects/handTrackingMosaic/manifest';
+import {
+  computeActiveRegions as computeActiveRegionsImpl,
+  type Rect,
+} from '../effects/handTrackingMosaic/region';
 import { FRAGMENT_SHADER, VERTEX_SHADER } from '../effects/handTrackingMosaic/shader';
-import { setLandmarkOverride } from './landmarkOverride';
+import { getLandmarkOverride, setLandmarkOverride } from './landmarkOverride';
 import { paramStore } from './paramStore';
 import { listEffects } from './registry';
 import { getVideoTextureHandle } from './videoTextureRef';
@@ -137,6 +145,34 @@ function testCompileShaders(): { vertex: boolean; fragment: boolean; log: string
   return report;
 }
 
+/**
+ * Compute the current frame's active mosaic regions using the injected /
+ * detected landmarks (whichever the render loop would have seen this tick).
+ * The caller passes grid geometry + padding so the test can exercise a
+ * variety of fixtures without depending on the live paramStore.
+ *
+ * Returns `[]` when landmarks are null/short-form — matching the region
+ * module's own graceful-degradation contract. Callers should NOT rely on
+ * the array being mutable beyond the current call; each invocation
+ * allocates a fresh `Rect[]`.
+ */
+function computeActiveRegionsHook(opts: {
+  videoW: number;
+  videoH: number;
+  columnEdges: readonly number[];
+  rowEdges: readonly number[];
+  regionPadding: number;
+}): Rect[] {
+  return computeActiveRegionsImpl(
+    getLandmarkOverride(),
+    opts.videoW,
+    opts.videoH,
+    opts.columnEdges,
+    opts.rowEdges,
+    opts.regionPadding,
+  );
+}
+
 if (SHOULD_EXPOSE && typeof window !== 'undefined') {
   const w = window as unknown as { __handTracker?: Record<string, unknown> };
   const existing = (w.__handTracker ?? {}) as Record<string, unknown>;
@@ -155,6 +191,7 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
       setFakeLandmarks: setLandmarkOverride,
       getVideoTextureHandle,
       testCompileShaders,
+      computeActiveRegions: computeActiveRegionsHook,
     },
   };
 }
