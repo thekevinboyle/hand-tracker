@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 3 in progress (3.1 + 3.2 + 3.3 done); 3.4 next
+**Current Phase**: Phase 3 in progress (3.1 + 3.2 + 3.3 + 3.4 done); 3.5 next
 **Last updated**: 2026-04-16
 
 ---
@@ -13,7 +13,7 @@
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
-| 3: Mosaic Shader | in-progress | 3 | 6 | ogl mosaic inside hand-bounded polygon |
+| 3: Mosaic Shader | in-progress | 4 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
@@ -52,7 +52,7 @@
 | 3.1 | ogl renderer bootstrap + video texture | done | task/3-1-ogl-renderer-bootstrap | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 9 new unit tests (169 total across 15 files); 3 new E2E specs (26 total); `src/engine/renderer.ts` exports 4 factories (createOglRenderer + createVideoTexture + uploadVideoFrame + resizeRenderer); `src/engine/videoTextureRef.ts` broker publishes the Texture wrapper to devHooks; Stage.tsx owns renderer + texture lifecycle with StrictMode-safe teardown (`gl.deleteTexture` + `WEBGL_lose_context`); App.tsx's onFrame calls uploadVideoFrame + threads the raw WebGLTexture into `FrameContext.videoTexture`; `__engine.getVideoTextureHandle()` dev hook added. Shared `src/test/setup.ts` gained an ogl stub so Stage-mounting unit tests don't need per-file mocks. |
 | 3.2 | Mosaic fragment shader (GLSL ES 3.0) | done | task/3-2-mosaic-fragment-shader | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 21 new unit tests (190 total across 16 files); 1 new E2E spec (27 total); `src/effects/handTrackingMosaic/shader.ts` exports VERTEX_SHADER + FRAGMENT_SHADER + MAX_REGIONS; fragment shader carries all 7 uniforms + step()-based AABB + bounded loop + feather guard; `__engine.testCompileShaders()` dev hook added — L4 confirms real Chromium WebGL2 accepts both shader sources. |
 | 3.3 | Hand polygon → active cells (winding number) | done | task/3-3-hand-polygon-regions | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 18 new unit tests (208 total across 17 files); 1 new E2E spec (28 total); `src/effects/handTrackingMosaic/region.ts` exports Rect + POLY_LANDMARK_INDICES + polygonFromLandmarks + expandPolygon + pointInPolygon + computeActiveRegions + REGION_CAP; winding-number PIP (Dan Sunday) correctly excludes C-shape mouth; MAX_REGIONS imported from './shader' (single source of truth). `__engine.computeActiveRegions` dev hook consumes injected landmarks + caller-supplied grid. |
-| 3.4 | Effect render() wire-up (overlay composites WebGL) | pending | | | |
+| 3.4 | Effect render() wire-up (overlay composites WebGL) | done | task/3-4-effect-render-wireup | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 15 new unit tests (218 total across 18 files); 3 new E2E specs (31 total). `src/effects/handTrackingMosaic/render.ts` exports initMosaicEffect + packRegions + updateMosaicUniforms (ogl-cache-friendly Float32Array view rewrap). `src/engine/rendererRef.ts` parallel broker to videoTextureRef; Stage.tsx sets both. Manifest's `create(gl)` rewritten: compiles shaders via initMosaicEffect, memoises grid edges on (seed, cols, rows, variance, videoW, videoH) tuple, calls computeActiveRegions per frame, pushes uniforms, invokes renderer.render(). 2D overlay now pre-composites the WebGL canvas via drawImage (D28 captureStream precondition). `__engine.getLastRegionCount` dev hook added. 2.R `WebGL canvas clears to black` assertion updated to `WebGL canvas is alive and rendering` (historical black gate is now Phase-3-owned). |
 | 3.5 | Context-loss recovery + cleanup | pending | | | |
 | 3.R | Phase 3 Regression — visual fidelity gate | pending | | | |
 

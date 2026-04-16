@@ -1,5 +1,5 @@
 /**
- * Unit tests for the handTrackingMosaic manifest (Task 2.5).
+ * Unit tests for the handTrackingMosaic manifest (Task 2.5 + Task 3.4).
  *
  * Tests:
  *   - Registration + listEffects round-trip
@@ -9,25 +9,57 @@
  *   - Randomize Grid button rerolls grid.seed
  *   - create(gl).render() invokes drawGrid + drawLandmarkBlobs via ctx.stroke()
  *   - create(gl).render() handles null ctx2d gracefully
- *   - Dev-hook getters have correct initial values
+ *   - Dev-hook getters have correct initial values + Task 3.4's region count
+ *
+ * Task 3.4 added module-broker dependencies (rendererRef + videoTextureRef)
+ * and shader Program compilation inside `create()`. Tests seed both brokers
+ * via the shared ogl stub (`src/test/setup.ts`) in beforeEach and clear
+ * them in afterEach so registry-only tests don't inherit stale state.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Renderer, Texture } from 'ogl';
+import { Renderer as RendererCtor, Texture as TextureCtor } from 'ogl';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ParamState } from '../../engine/paramStore';
 import { paramStore } from '../../engine/paramStore';
 import { clearRegistry, listEffects, registerEffect } from '../../engine/registry';
+import { __resetRenderer, setRenderer } from '../../engine/rendererRef';
+import { __resetVideoTexture, setVideoTexture } from '../../engine/videoTextureRef';
 import {
   __getLastBlobCount,
   __getLastGridLayout,
+  __getLastRegionCount,
   DEFAULT_PARAM_STATE,
   handTrackingMosaicManifest,
 } from './manifest';
 
+function makeStubBrokers(): { renderer: Renderer; texture: Texture; gl: WebGL2RenderingContext } {
+  const canvas = document.createElement('canvas');
+  Object.defineProperty(canvas, 'clientWidth', { value: 640, configurable: true });
+  Object.defineProperty(canvas, 'clientHeight', { value: 480, configurable: true });
+  const renderer = new RendererCtor({ canvas }) as unknown as Renderer;
+  const gl = (renderer as unknown as { gl: WebGL2RenderingContext }).gl;
+  // The setup stub's Texture constructor accepts any gl-like shape; ogl's
+  // type annotation wants an OGLRenderingContext (gl + attached `renderer` /
+  // `canvas`). Cast the constructor once at the boundary since the stub
+  // doesn't care — the real shape is validated in Playwright L4.
+  type StubCtor = new (gl: unknown, opts: unknown) => Texture;
+  const texture = new (TextureCtor as unknown as StubCtor)(gl, {});
+  return { renderer, texture, gl };
+}
+
 describe('Task 2.5: handTrackingMosaic manifest', () => {
   beforeEach(() => {
     clearRegistry();
+    __resetRenderer();
+    __resetVideoTexture();
     // Seed paramStore with the manifest defaults so render() and onClick work.
     paramStore.replace(DEFAULT_PARAM_STATE as unknown as ParamState);
+  });
+
+  afterEach(() => {
+    __resetRenderer();
+    __resetVideoTexture();
   });
 
   it('registers exactly one effect with id handTrackingMosaic', () => {
@@ -109,22 +141,20 @@ describe('Task 2.5: handTrackingMosaic manifest', () => {
     expect(after).not.toBe(before);
   });
 
-  it('create(gl).render invokes drawGrid and drawLandmarkBlobs', () => {
-    const fakeGl = {
-      clearColor: vi.fn(),
-      clear: vi.fn(),
-      COLOR_BUFFER_BIT: 0x4000,
-    } as unknown as WebGL2RenderingContext;
+  it('create(gl).render invokes drawGrid and drawLandmarkBlobs on the 2D overlay', () => {
+    const { renderer, texture, gl } = makeStubBrokers();
+    setRenderer(renderer);
+    setVideoTexture(texture);
 
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
     const ctx2d = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    // Spy on stroke() — both drawGrid and drawLandmarkBlobs call it
+    // Spy on stroke() — both drawGrid and drawLandmarkBlobs call it.
     const strokeSpy = vi.spyOn(ctx2d, 'stroke');
 
-    const instance = handTrackingMosaicManifest.create(fakeGl);
+    const instance = handTrackingMosaicManifest.create(gl);
     instance.render({
       videoTexture: null,
       videoSize: { w: 640, h: 480 },
@@ -134,52 +164,46 @@ describe('Task 2.5: handTrackingMosaic manifest', () => {
       ctx2d,
     });
 
-    // GL clear was called (noop mosaic placeholder)
-    expect(fakeGl.clearColor).toHaveBeenCalled();
-    expect(fakeGl.clear).toHaveBeenCalled();
-    // stroke() was called at least twice — once for grid, once for blobs
+    // stroke() was called at least twice — once for grid, once for blobs.
     expect(strokeSpy).toHaveBeenCalled();
     expect(strokeSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
 
     instance.dispose();
   });
 
-  it('create(gl).render returns early when ctx2d is null', () => {
-    const fakeGl = {
-      clearColor: vi.fn(),
-      clear: vi.fn(),
-      COLOR_BUFFER_BIT: 0x4000,
-    } as unknown as WebGL2RenderingContext;
+  it('create(gl).render skips the 2D overlay path when ctx2d is null', () => {
+    const { renderer, texture, gl } = makeStubBrokers();
+    setRenderer(renderer);
+    setVideoTexture(texture);
 
-    const instance = handTrackingMosaicManifest.create(fakeGl);
+    const instance = handTrackingMosaicManifest.create(gl);
+    // Should not throw when ctx2d is null — WebGL path still runs
+    // (renderer.render is stubbed in the shared ogl mock).
+    expect(() =>
+      instance.render({
+        videoTexture: null,
+        videoSize: { w: 640, h: 480 },
+        landmarks: null,
+        params: {},
+        timeMs: 0,
+        ctx2d: null,
+      }),
+    ).not.toThrow();
 
-    // Should not throw when ctx2d is null
-    instance.render({
-      videoTexture: null,
-      videoSize: { w: 640, h: 480 },
-      landmarks: null,
-      params: {},
-      timeMs: 0,
-      ctx2d: null,
-    });
-
-    expect(fakeGl.clearColor).toHaveBeenCalled();
     instance.dispose();
   });
 
-  it('render updates __getLastBlobCount and __getLastGridLayout', () => {
-    const fakeGl = {
-      clearColor: vi.fn(),
-      clear: vi.fn(),
-      COLOR_BUFFER_BIT: 0x4000,
-    } as unknown as WebGL2RenderingContext;
+  it('render updates __getLastBlobCount, __getLastGridLayout, and __getLastRegionCount', () => {
+    const { renderer, texture, gl } = makeStubBrokers();
+    setRenderer(renderer);
+    setVideoTexture(texture);
 
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
     const ctx2d = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    const instance = handTrackingMosaicManifest.create(fakeGl);
+    const instance = handTrackingMosaicManifest.create(gl);
     instance.render({
       videoTexture: null,
       videoSize: { w: 640, h: 480 },
@@ -189,13 +213,18 @@ describe('Task 2.5: handTrackingMosaic manifest', () => {
       ctx2d,
     });
 
-    // After rendering with 21 landmarks, 5 fingertip blobs should be drawn
+    // After rendering with 21 landmarks, 5 fingertip blobs should be drawn.
     expect(__getLastBlobCount()).toBe(5);
-    // Grid layout should be populated with columns and rows
+    // Grid layout should be populated with columns and rows.
     const layout = __getLastGridLayout();
     expect(layout).not.toBeNull();
     expect(layout?.columns).toHaveLength(12); // default columnCount
     expect(layout?.rows).toHaveLength(8); // default rowCount
+    // Region count is non-negative. With all 6 hull landmarks at (0.5, 0.5)
+    // the polygon is degenerate (zero area) so pointInPolygon returns false
+    // for every cell — count is exactly 0 here. With a real spread hand the
+    // count would be > 0 (verified in L4).
+    expect(__getLastRegionCount()).toBe(0);
 
     instance.dispose();
   });

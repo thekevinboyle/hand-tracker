@@ -1,10 +1,20 @@
 /**
- * Hand Tracking Mosaic — effect manifest (Task 2.5).
+ * Hand Tracking Mosaic — effect manifest (Task 2.5 + Task 3.4).
  *
  * Declares every parameter (D4 grid + D9 mosaic + D10 input), default values,
  * modulation sources (D15), and the `create(gl)` factory that returns an
- * `EffectInstance` whose `render()` draws the 2D overlay (grid + fingertip
- * blobs). The WebGL mosaic shader is deferred to Phase 3.
+ * `EffectInstance`. Phase 2 (Task 2.5) shipped the no-op version of render()
+ * — Phase 3 (Task 3.4) rewired it to compile the real mosaic shaders, call
+ * `computeActiveRegions` per frame, push uniforms, and invoke
+ * `renderer.render({ scene: mesh })`. The 2D overlay still draws the grid +
+ * fingertip blobs on top, and now ALSO pre-composites the WebGL canvas via
+ * `drawImage(webglCanvas, …)` so Phase 4's `captureStream()` recording
+ * picks up the mosaic (D28 precondition).
+ *
+ * Renderer + video Texture are sourced through the module brokers
+ * `src/engine/rendererRef.ts` + `src/engine/videoTextureRef.ts`, populated
+ * by Stage.tsx's useEffect before any render() is dispatched. The manifest
+ * signature `create(gl): EffectInstance` is pinned by D36 and unchanged.
  *
  * `satisfies EffectManifest<HandTrackingMosaicParams>` preserves narrow
  * inference while verifying the shape against the generic contract from
@@ -19,9 +29,13 @@ import type {
   ParamDef,
 } from '../../engine/manifest';
 import { paramStore } from '../../engine/paramStore';
+import { getRendererOrThrow } from '../../engine/rendererRef';
+import { getVideoTexture } from '../../engine/videoTextureRef';
 import { drawLandmarkBlobs } from './blobRenderer';
-import { buildGridLayout, type GridLayout } from './grid';
+import { buildGridLayout, type GridLayout, generateColumnWidths, generateRowWidths } from './grid';
 import { drawGrid } from './gridRenderer';
+import { computeActiveRegions } from './region';
+import { initMosaicEffect, updateMosaicUniforms } from './render';
 
 // ---------------------------------------------------------------------------
 // Param type
@@ -237,6 +251,7 @@ const PARAMS: ParamDef[] = [
 
 let lastBlobCount = 0;
 let lastGridLayoutValue: GridLayout | null = null;
+let lastRegionCount = 0;
 
 export function __getLastBlobCount(): number {
   return lastBlobCount;
@@ -246,26 +261,130 @@ export function __getLastGridLayout(): GridLayout | null {
   return lastGridLayoutValue;
 }
 
+export function __getLastRegionCount(): number {
+  return lastRegionCount;
+}
+
 // ---------------------------------------------------------------------------
 // create() factory (D36, D37)
 // ---------------------------------------------------------------------------
 
 function create(gl: WebGL2RenderingContext): EffectInstance {
+  const renderer = getRendererOrThrow();
+  const texture = getVideoTexture();
+  if (!texture) {
+    throw new Error(
+      'Video texture not initialized — manifest.create() called before Stage mounted the ogl bundle',
+    );
+  }
+
+  const { mesh, program } = initMosaicEffect(gl, texture);
+
+  // Memoise grid edges by the tuple (seed, columnCount, rowCount, widthVariance)
+  // — the breakpoints change only when those params move, so recomputing every
+  // frame wastes ~0.3ms at 30fps. Cache both the normalized breakpoints
+  // (returned by grid.ts) AND the pixel-space edges with leading 0 prepended
+  // (what computeActiveRegions expects) so the hot path does zero allocation
+  // beyond the rects result.
+  type GridCache = {
+    seed: number;
+    cols: number;
+    rows: number;
+    variance: number;
+    videoW: number;
+    videoH: number;
+    colEdgesPx: number[];
+    rowEdgesPx: number[];
+  };
+  let gridCache: GridCache | null = null;
+
+  function edgesFromBreakpoints(breakpoints: readonly number[], size: number): number[] {
+    const edges = new Array<number>(breakpoints.length + 1);
+    edges[0] = 0;
+    for (let i = 0; i < breakpoints.length; i++) {
+      const b = breakpoints[i] ?? 0;
+      edges[i + 1] = b * size;
+    }
+    return edges;
+  }
+
   return {
     render(frameCtx: FrameContext): void {
-      // Phase 3 replaces this with the real mosaic shader draw.
-      // For now, clear the WebGL canvas to transparent black.
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      const snap = paramStore.snapshot as unknown as HandTrackingMosaicParams;
+      const { w: videoW, h: videoH } = frameCtx.videoSize;
+      const { seed, columnCount: cols, rowCount: rows, widthVariance: variance } = snap.grid;
 
-      // 2D overlay: grid + blobs
+      if (
+        !gridCache ||
+        gridCache.seed !== seed ||
+        gridCache.cols !== cols ||
+        gridCache.rows !== rows ||
+        gridCache.variance !== variance ||
+        gridCache.videoW !== videoW ||
+        gridCache.videoH !== videoH
+      ) {
+        gridCache = {
+          seed,
+          cols,
+          rows,
+          variance,
+          videoW,
+          videoH,
+          colEdgesPx: edgesFromBreakpoints(generateColumnWidths(seed, cols, variance), videoW),
+          rowEdgesPx: edgesFromBreakpoints(generateRowWidths(seed, rows, variance), videoH),
+        };
+      }
+
+      const rects = computeActiveRegions(
+        frameCtx.landmarks,
+        videoW,
+        videoH,
+        gridCache.colEdgesPx,
+        gridCache.rowEdgesPx,
+        snap.effect.regionPadding,
+      );
+      lastRegionCount = rects.length;
+
+      const canvas = renderer.gl.canvas as HTMLCanvasElement;
+      const canvasW = canvas.width;
+      const canvasH = canvas.height;
+
+      updateMosaicUniforms(
+        program,
+        rects,
+        {
+          tileSize: snap.mosaic.tileSize,
+          blendOpacity: snap.mosaic.blendOpacity,
+          edgeFeather: snap.mosaic.edgeFeather,
+        },
+        canvasW,
+        canvasH,
+      );
+
+      // Effect owns the WebGL draw — renderLoop does NOT call renderer.render()
+      // separately (see task-3-4.md "Known Gotchas").
+      renderer.render({ scene: mesh });
+
+      // 2D overlay: pre-composite the mosaic first so captureStream() (D28,
+      // Phase 4) captures it, then grid + landmark blobs on top. When mirror
+      // mode is on, flip the drawImage call — CSS scaleX(-1) on the display
+      // canvases does NOT affect the overlay's pixel buffer.
       const ctx2d = frameCtx.ctx2d;
       if (!ctx2d) return;
 
-      const snap = paramStore.snapshot as unknown as HandTrackingMosaicParams;
       const { w, h } = frameCtx.videoSize;
-
       ctx2d.clearRect(0, 0, w, h);
+
+      const mirror = snap.input.mirrorMode === true;
+      if (mirror) {
+        ctx2d.save();
+        ctx2d.scale(-1, 1);
+        ctx2d.translate(-w, 0);
+        ctx2d.drawImage(canvas, 0, 0, w, h);
+        ctx2d.restore();
+      } else {
+        ctx2d.drawImage(canvas, 0, 0, w, h);
+      }
 
       const layout = buildGridLayout(snap.grid);
       lastGridLayoutValue = layout;
@@ -292,7 +411,9 @@ function create(gl: WebGL2RenderingContext): EffectInstance {
       );
     },
     dispose(): void {
-      // Noop in MVP — Phase 3 tears down shader program.
+      // Delete the WebGL program + shaders. Texture deletion is the
+      // renderer's responsibility (Stage.tsx cleanup — Task 3.5 extends).
+      program.remove();
     },
   };
 }
@@ -305,7 +426,7 @@ export const handTrackingMosaicManifest = {
   id: 'handTrackingMosaic',
   displayName: 'Hand Tracking Mosaic',
   version: '1.0.0',
-  description: 'Seeded grid overlay + fingertip blobs; mosaic shader lands in Phase 3',
+  description: 'Seeded grid overlay + fingertip blobs + hand-region mosaic (WebGL)',
   params: PARAMS,
   defaultParams: DEFAULT_PARAM_STATE,
   modulationSources: DEFAULT_MODULATION_SOURCES,

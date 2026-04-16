@@ -22,7 +22,11 @@
  * block tree-shakes in production.
  */
 
-import { __getLastBlobCount, __getLastGridLayout } from '../effects/handTrackingMosaic/manifest';
+import {
+  __getLastBlobCount,
+  __getLastGridLayout,
+  __getLastRegionCount,
+} from '../effects/handTrackingMosaic/manifest';
 import {
   computeActiveRegions as computeActiveRegionsImpl,
   type Rect,
@@ -188,6 +192,7 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
       setParam,
       getLandmarkBlobCount: __getLastBlobCount,
       lastGridLayout: __getLastGridLayout,
+      getLastRegionCount: __getLastRegionCount,
       setFakeLandmarks: setLandmarkOverride,
       getVideoTextureHandle,
       testCompileShaders,

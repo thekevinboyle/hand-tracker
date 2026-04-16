@@ -44,5 +44,26 @@ vi.mock('ogl', () => {
       Object.assign(this, opts);
     }
   }
-  return { Renderer: StubRenderer, Texture: StubTexture };
+  class StubTriangle {}
+  class StubProgram {
+    uniforms: Record<string, { value: unknown }>;
+    removed = false;
+    constructor(_gl: unknown, opts: { uniforms?: Record<string, { value: unknown }> }) {
+      this.uniforms = opts.uniforms ?? {};
+    }
+    remove(): void {
+      this.removed = true;
+    }
+  }
+  class StubMesh {}
+  // Augment StubRenderer with a no-op `render()` so effect.render() can
+  // invoke it without extra test scaffolding.
+  (StubRenderer.prototype as unknown as { render: (opts: unknown) => void }).render = () => {};
+  return {
+    Renderer: StubRenderer,
+    Texture: StubTexture,
+    Triangle: StubTriangle,
+    Program: StubProgram,
+    Mesh: StubMesh,
+  };
 });

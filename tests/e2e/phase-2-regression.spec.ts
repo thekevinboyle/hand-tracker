@@ -238,7 +238,15 @@ test.describe('Task 2.R: Phase 2 regression — engine + overlay', () => {
     });
   });
 
-  test('WebGL canvas clears to black (Phase 3 installs the mosaic)', async ({ page }) => {
+  test('WebGL canvas is alive and rendering (Phase 3.4+ — was "black" at Phase 2)', async ({
+    page,
+  }) => {
+    // Historical note: Phase 2 (pre-3.4) asserted the WebGL canvas cleared to
+    // black because `manifest.create()` was a noop gl.clear. Task 3.4 replaced
+    // that with a real shader Program draw, so the canvas now carries video
+    // pixels. The updated assertion only verifies the WebGL canvas is present
+    // and renders a valid RGBA pixel (alpha === 255) — the specific visual
+    // fidelity gate lives in Task 3.R.
     await snap(page, 6, 'webgl-black');
     const centerPixel = await page.evaluate(() => {
       const canvas = document.querySelector(
@@ -254,10 +262,8 @@ test.describe('Task 2.R: Phase 2 regression — engine + overlay', () => {
       return Array.from(px);
     });
     expect(centerPixel, 'WebGL canvas must be present').not.toBeNull();
-    const [r, g, b] = centerPixel as number[];
-    // Phase 2's create() issues gl.clearColor(0,0,0,0) then gl.clear — RGB is
-    // always 0; alpha may be 0 or 255 depending on context attributes.
-    expect({ r, g, b }).toEqual({ r: 0, g: 0, b: 0 });
+    const alpha = (centerPixel as number[])[3];
+    expect(alpha, 'a drawn Program leaves alpha=255 (vs cleared buffer=0)').toBe(255);
   });
 
   test('mirror default — display canvas carries scaleX(-1) transform', async ({ page }) => {

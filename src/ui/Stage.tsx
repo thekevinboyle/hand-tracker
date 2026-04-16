@@ -1,6 +1,7 @@
 import type { Renderer, Texture } from 'ogl';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { createOglRenderer, createVideoTexture, resizeRenderer } from '../engine/renderer';
+import { setRenderer } from '../engine/rendererRef';
 import { setVideoTexture } from '../engine/videoTextureRef';
 import './Stage.css';
 
@@ -141,6 +142,7 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
     rendererRef.current = bundle.renderer;
     textureRef.current = texture;
     setVideoTexture(texture);
+    setRenderer(bundle.renderer);
 
     const doResize = () => resizeRenderer(bundle.renderer, canvas);
     doResize();
@@ -161,6 +163,7 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
       const loseExt = bundle.gl.getExtension('WEBGL_lose_context');
       loseExt?.loseContext();
       setVideoTexture(null);
+      setRenderer(null);
       rendererRef.current = null;
       textureRef.current = null;
     };
