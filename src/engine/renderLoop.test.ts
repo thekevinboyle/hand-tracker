@@ -191,7 +191,12 @@ describe('startRenderLoop', () => {
   it('setLandmarkOverride substitutes the payload for downstream consumers', () => {
     const video = fakeVideo();
     const lm = fakeLandmarker({ landmarks: [] });
-    const injected = Array.from({ length: 21 }, (_, i) => ({ x: i / 21, y: 0.5, z: 0 }));
+    const injected = Array.from({ length: 21 }, (_, i) => ({
+      x: i / 21,
+      y: 0.5,
+      z: 0,
+      visibility: 1,
+    }));
     setLandmarkOverride(injected);
     let seenLandmarks: unknown = 'unset';
     const handle = startRenderLoop({
@@ -212,11 +217,11 @@ describe('startRenderLoop', () => {
 
   it('clearing the override (null) restores MediaPipe detection', () => {
     const video = fakeVideo();
-    const realLm = [{ x: 0.1, y: 0.2, z: 0 }];
+    const realLm = [{ x: 0.1, y: 0.2, z: 0, visibility: 1 }];
     const lm = fakeLandmarker({ landmarks: [realLm] });
-    const injected = [{ x: 0.9, y: 0.9, z: 0 }];
+    const injected = [{ x: 0.9, y: 0.9, z: 0, visibility: 1 }];
     setLandmarkOverride(injected);
-    const frames: Array<Array<{ x: number; y: number; z: number }> | null> = [];
+    const frames: Array<Array<{ x: number; y: number; z: number; visibility: number }> | null> = [];
     const handle = startRenderLoop({
       video,
       landmarker: lm,

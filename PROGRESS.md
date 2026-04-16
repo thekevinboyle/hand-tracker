@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 2 in progress (2.1 + 2.2 + 2.3 + 2.4 done)
+**Current Phase**: Phase 2 complete (2.1 + 2.2 + 2.3 + 2.4 + 2.5 + 2.R done); Phase 3 next
 **Last updated**: 2026-04-15
 
 ---
@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
-| 2: Engine + Overlay | in-progress | 4 | 6 | Registry, paramStore, Tweakpane, grid, blobs |
+| 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | pending | 0 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
@@ -43,7 +43,7 @@
 | 2.3 | Seeded grid generator + 2D overlay rendering | done | task/2-3-grid-generator-overlay | 2026-04-15 | All 4 levels green in 1 iteration; 33 new unit tests (128 total across 12 files); Mulberry32 PRNG + deterministic column/row breakpoints with minCell floor; drawGrid uses batched single-stroke + save/restore + setLineDash([]); strokeStyle/lineWidth asserted via jest-canvas-mock `__getEvents()` because save/restore pops the stack after draw; dev hook `__engine.lastGridLayout` deferred to Task 2.5 (L4 guards prior hook shape meanwhile). |
 | 2.4 | Dotted-circle blobs + xy labels | done | task/2-4-blob-renderer | 2026-04-15 | All 4 levels green in 1 iteration; 21 new unit tests (149 total across 13 files); pure `drawLandmarkBlobs(ctx, landmarks, target, style?, opts?)` + `formatCoordLabel(x, y)` + `FINGERTIP_INDICES` tuple; batched dotted arcs (single stroke) with `setLineDash([2,3])` then reset to `[]` before labels; strokeStyle/lineWidth/fillStyle/font/textBaseline/textAlign asserted via `__getEvents()` per Task 2.3 finding; mirror=true flips blob cx and counter-rotates label via inner save/scale/restore; getLandmarkBlobCount dev hook deferred to Task 2.5 (L4 guards prior hook shape meanwhile). |
 | 2.5 | handTrackingMosaic manifest + registration | done | task/2-5-mosaic-manifest | 2026-04-15 | All 4 levels green in 1 iteration; 9 new unit tests (158 total across 14 files); 14 ParamDefs + 45 modulation sources + create(gl) factory + side-effect registration; App.tsx wires onFrame→effect.render(ctx); Panel mounted; dev hooks getLandmarkBlobCount + lastGridLayout added; 2 prior E2E tests updated for seeded state. |
-| 2.R | Phase 2 Regression | pending | | | |
+| 2.R | Phase 2 Regression | done | task/2-R-phase-2-regression | 2026-04-15 | All 4 levels green in 1 Ralph iteration against `pnpm build --mode test && pnpm preview`; 23 / 23 E2E specs (Phase 1 + 2 aggregate), 11 / 11 Task 2.R regression specs; 160 / 160 unit tests; 6 walkthrough screenshots captured; hotfix commit `ca8ab8c` added `setFakeLandmarks` dev hook + render-loop override (closes pre-Phase-3 gap in Task 2.5). Spec adapted to actual `__engine.*` shape + `{columns,rows}` GridLayout; `VITE_DEV_HOOKS` dropped per synergy-review #14/#27. Report at `reports/phase-2-regression.md`. |
 
 ### Phase 3: Mosaic Shader
 
@@ -97,7 +97,19 @@
 - Report: `.claude/orchestration-hand-tracker-fx/reports/phase-1-regression.md`
 
 ### Phase 2 Regression
-- Status: pending
+- Status: complete
+- Date: 2026-04-15
+- Ralph iterations: 1 (one diagnostic + fix cycle on `GridLayout` shape drift)
+- L1: `pnpm biome check .` 18 ms (58 files), `pnpm tsc --noEmit` 0 errors — green
+- L2: 160 / 160 tests across 14 files (1.5 s) — green
+- L3: `pnpm build --mode test` 157 ms (42 modules, 6 chunks); preview serves COOP/COEP/CSP/PP headers — green
+- L4a: 23 / 23 Phase 1 + Phase 2 E2E specs pass (1 m 54 s)
+- L4b: 11 / 11 Task 2.R regression specs pass (1 m 04 s)
+- 6 walkthrough screenshots captured at `reports/phase-2-walkthrough/step-*.png` (gitignored)
+- Backported fixes: 1 hotfix commit `ca8ab8c — Task 2.R (hotfix): Add setFakeLandmarks dev hook + render-loop override` closes a pre-Phase-3 gap (Task 2.5 did not expose `setFakeLandmarks`; the regression checklist D6 row required it). New `src/engine/landmarkOverride.ts` broker + 2 new renderLoop unit tests (158 → 160)
+- Deviations: spec targets actual dev-hook shape (`__engine.*`) + `{columns,rows}` GridLayout; `VITE_DEV_HOOKS=1` dropped per synergy-review findings #14 / #27; panel testid is `params-panel` not `tweakpane-root`; mirror transform assertion targets `canvas[data-testid="webgl-canvas"]` (the actual CSS scaleX(-1) target) instead of the `render-canvas` bounding-box div
+- Decision: SHIP — Phase 3 greenlit
+- Report: `reports/phase-2-regression.md`
 
 ### Phase 3 Regression
 - Status: pending
