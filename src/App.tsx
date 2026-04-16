@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
+import { uploadVideoFrame } from './engine/renderer';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
@@ -50,7 +51,19 @@ export function App() {
           landmarker,
           overlayCtx2d,
           onFrame: (ctx) => {
-            effectInstance?.render(ctx);
+            // Task 3.1: upload the current video frame into the ogl texture
+            // and thread the raw WebGLTexture handle into FrameContext so
+            // Phase 3.4's effect render() can sample it. `uploadVideoFrame`
+            // is readyState-guarded; a `false` return just means "skip
+            // texture rebind this tick" — the effect render still runs with
+            // whatever handle is currently valid, and Phase 3's shader
+            // tolerates a `null` videoTexture (clear-only fallback).
+            const tex = stageRef.current?.getVideoTexture() ?? null;
+            if (tex && videoEl) {
+              uploadVideoFrame(tex, videoEl);
+            }
+            const frame = tex ? { ...ctx, videoTexture: tex.texture } : ctx;
+            effectInstance?.render(frame);
           },
           onError: (err) => {
             console.error('[App] detectForVideo error', err);

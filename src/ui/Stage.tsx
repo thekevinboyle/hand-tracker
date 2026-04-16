@@ -1,10 +1,18 @@
+import type { Renderer, Texture } from 'ogl';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { createOglRenderer, createVideoTexture, resizeRenderer } from '../engine/renderer';
+import { setVideoTexture } from '../engine/videoTextureRef';
 import './Stage.css';
 
 export interface StageHandle {
   videoEl: HTMLVideoElement | null;
   webglCanvas: HTMLCanvasElement | null;
   overlayCanvas: HTMLCanvasElement | null;
+  /** Lazy getters — refs are populated by Stage's renderer useEffect AFTER
+   *  useImperativeHandle runs, so a direct-value exposure would be stale.
+   *  Callers invoke these in their own effects / rVFC callbacks. */
+  getRenderer: () => Renderer | null;
+  getVideoTexture: () => Texture | null;
 }
 
 export interface StageProps {
@@ -42,6 +50,8 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const webglRef = useRef<HTMLCanvasElement | null>(null);
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
+  const rendererRef = useRef<Renderer | null>(null);
+  const textureRef = useRef<Texture | null>(null);
 
   useImperativeHandle(
     ref,
@@ -49,6 +59,8 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
       videoEl: videoRef.current,
       webglCanvas: webglRef.current,
       overlayCanvas: overlayRef.current,
+      getRenderer: () => rendererRef.current,
+      getVideoTexture: () => textureRef.current,
     }),
     [],
   );
@@ -92,21 +104,66 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
     };
   }, [stream, onVideoReady]);
 
-  // Canvas backing-store sizing (DPR-aware). CSS size stays 100%.
+  // Overlay canvas backing-store sizing (DPR-aware). CSS size stays 100%.
+  // The WebGL canvas is sized by the renderer effect below — `renderer.setSize`
+  // owns `canvas.width` / `canvas.height` there, so this loop touches only the
+  // 2D overlay to avoid two conflicting owners.
   useEffect(() => {
     const resize = () => {
+      const c = overlayRef.current;
+      if (!c) return;
       const dpr = window.devicePixelRatio || 1;
-      const canvases = [webglRef.current, overlayRef.current];
-      for (const c of canvases) {
-        if (!c) continue;
-        const r = c.getBoundingClientRect();
-        c.width = Math.max(1, Math.floor(r.width * dpr));
-        c.height = Math.max(1, Math.floor(r.height * dpr));
-      }
+      const r = c.getBoundingClientRect();
+      c.width = Math.max(1, Math.floor(r.width * dpr));
+      c.height = Math.max(1, Math.floor(r.height * dpr));
     };
     resize();
     window.addEventListener('resize', resize);
     return () => window.removeEventListener('resize', resize);
+  }, []);
+
+  // ogl Renderer + video Texture lifecycle (Task 3.1). Created on mount,
+  // torn down idempotently on unmount — StrictMode's dev double-invoke runs
+  // the cleanup between the two mount passes, so `gl.deleteTexture` +
+  // `WEBGL_lose_context` run exactly once per mount/unmount cycle.
+  //
+  // The renderer owns `webglRef.current.width` / `.height` via `setSize`
+  // (ResizeObserver picks up both DOM CSS changes and devicePixelRatio
+  // moves). The raw `texture.texture` WebGLTexture handle is also published
+  // to the engine's `videoTextureRef` broker so devHooks + the Phase 3
+  // effect render() can read it without prop-drilling.
+  useEffect(() => {
+    const canvas = webglRef.current;
+    if (!canvas) return;
+
+    const bundle = createOglRenderer(canvas);
+    const texture = createVideoTexture(bundle.gl);
+    rendererRef.current = bundle.renderer;
+    textureRef.current = texture;
+    setVideoTexture(texture);
+
+    const doResize = () => resizeRenderer(bundle.renderer, canvas);
+    doResize();
+    window.addEventListener('resize', doResize);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
+      observer = new ResizeObserver(doResize);
+      observer.observe(canvas.parentElement);
+    }
+
+    return () => {
+      window.removeEventListener('resize', doResize);
+      observer?.disconnect();
+      // ogl Texture has no destroy(); delete via raw gl handle.
+      bundle.gl.deleteTexture(texture.texture);
+      // Release the GPU context so a remount can allocate a fresh one.
+      const loseExt = bundle.gl.getExtension('WEBGL_lose_context');
+      loseExt?.loseContext();
+      setVideoTexture(null);
+      rendererRef.current = null;
+      textureRef.current = null;
+    };
   }, []);
 
   return (
