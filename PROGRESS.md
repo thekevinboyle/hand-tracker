@@ -1,8 +1,9 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 5 in progress (5.1 done); 5.2 next (HUMAN step — GitHub/Vercel auth)
+**Current Phase**: Phase 5 in progress (5.1 + 5.2 done); 5.3 next
 **Last updated**: 2026-04-16
+**Live URL**: https://hand-tracker-jade.vercel.app
 
 ---
 
@@ -15,7 +16,7 @@
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | done | 7 | 7 | X/Y modulation, presets, record, reduced-motion |
-| 5: Deploy + E2E | in-progress | 1 | 6 | Vercel live + all 8 error states + visual fidelity gate |
+| 5: Deploy + E2E | in-progress | 2 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
 
 ---
@@ -73,7 +74,7 @@
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
 | 5.1 | Service worker for /models/* and /wasm/* | done | task/5-1-service-worker | 2026-04-16 | All 4 levels green (330/330 unit tests, 47/47 E2E incl 2 new SW specs); `public/sw.js` (45 LOC, no deps, cache-first for /models/* + /wasm/* only, CACHE_NAME="hand-tracker-fx-models-v1", skipWaiting + clients.claim for first-visit control, stale-cache purge on activate). `src/registerSW.ts` gated on `PROD \|\| MODE==='test'` (expanded from task file's PROD-only gate so the Playwright MODE=test webServer can verify caching). main.tsx calls registerSW() after root.render. L4 asserts `navigator.serviceWorker.controller !== null` after reload + `PerformanceResourceTiming.transferSize === 0` for both the 7.82 MB model and at least one wasm binary. |
-| 5.2 | GitHub remote + Vercel link + first deploy | pending | | | HUMAN steps for auth; AGENT drives rest |
+| 5.2 | GitHub remote + Vercel link + first deploy | done | main (direct) | 2026-04-16 | Live at **https://hand-tracker-jade.vercel.app**. Pushed 31 local commits to `github.com/thekevinboyle/hand-tracker` (pre-existing repo reused). `vercel --prod --yes` auto-created the Vercel project + linked GitHub. First attempt blocked by 132 MB `tests/assets/fake-hand.y4m` > 100 MB Vercel per-file limit; fixed with `.vercelignore`. All 6 D31 headers verified on /, /models/*, /wasm/* via `curl -sI`. `PLAYWRIGHT_BASE_URL=<live> pnpm test:e2e --grep "Task 1.1:"` → 1/1 PASS (7.0s) confirming `crossOriginIsolated === true` on the live URL. Report: `reports/phase-5-deploy.md`. |
 | 5.3 | CI: full pipeline in GitHub Actions | pending | | | |
 | 5.4 | E2E for all 8 error states (forced failures) | pending | | | |
 | 5.5 | Visual-fidelity gate vs reference screenshot | pending | | | |

@@ -1,0 +1,33 @@
+# Files Vercel should NOT upload when deploying. Vercel already respects
+# .gitignore (node_modules, dist, etc.), but large test fixtures live
+# under tests/assets/*.y4m which exceed Vercel's 100 MB per-file limit.
+# Every entry below is redundant with .gitignore but listed explicitly so
+# a future contributor editing .gitignore doesn't accidentally break
+# the deploy.
+
+# Test fixtures + results (ffmpeg-generated Y4M is 132 MB)
+tests
+test-results
+playwright-report
+coverage
+
+# Local orchestration + skills (huge, not needed at runtime)
+.claude
+
+# Regression screenshots + reports (runtime-unused, large binaries)
+reports
+
+# Build artifacts (Vite rebuilds on Vercel)
+dist
+dist-ssr
+
+# Dependencies (Vercel runs pnpm install)
+node_modules
+
+# Editor + OS
+.vscode
+.idea
+.DS_Store
+
+# Docs + planning (not needed at runtime)
+PROGRESS.md
