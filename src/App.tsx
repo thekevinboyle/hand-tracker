@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCamera } from './camera/useCamera';
+import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
+import type { EffectInstance } from './engine/manifest';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
+import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { Stage, type StageHandle } from './ui/Stage';
 
@@ -23,6 +26,7 @@ export function App() {
 
     let cancelled = false;
     let stopLoop: (() => void) | null = null;
+    let effectInstance: EffectInstance | null = null;
 
     (async () => {
       try {
@@ -30,12 +34,23 @@ export function App() {
         if (cancelled) return;
         const overlayCanvas = stageRef.current?.overlayCanvas ?? null;
         const overlayCtx2d = overlayCanvas ? overlayCanvas.getContext('2d') : null;
+
+        // Create the effect instance. The WebGL canvas provides the GL context;
+        // the manifest's create() uses it for gl.clear in the Phase 2 stub and
+        // Phase 3 will use it for the mosaic shader. Falls back to null if
+        // webgl2 is unavailable (the create() noop handles this gracefully).
+        const webglCanvas = stageRef.current?.webglCanvas ?? null;
+        const gl = webglCanvas?.getContext('webgl2') ?? null;
+        if (gl) {
+          effectInstance = handTrackingMosaicManifest.create(gl);
+        }
+
         const handle = startRenderLoop({
           video: videoEl,
           landmarker,
           overlayCtx2d,
-          onFrame: () => {
-            /* Phase 2+ wires the effect registry dispatch here. */
+          onFrame: (ctx) => {
+            effectInstance?.render(ctx);
           },
           onError: (err) => {
             console.error('[App] detectForVideo error', err);
@@ -51,6 +66,10 @@ export function App() {
     return () => {
       cancelled = true;
       if (stopLoop) stopLoop();
+      if (effectInstance) {
+        effectInstance.dispose();
+        effectInstance = null;
+      }
     };
   }, [state, videoEl]);
 
@@ -64,6 +83,7 @@ export function App() {
       {state === 'GRANTED' && (
         <>
           <Stage ref={stageRef} stream={stream} mirror onVideoReady={(el) => setVideoEl(el)} />
+          <Panel manifest={handTrackingMosaicManifest} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error

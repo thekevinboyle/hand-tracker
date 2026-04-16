@@ -4,10 +4,12 @@
  * `isReady` / `isUsingGpu`). Task 2.1 adds `__engine.listEffects`. Task 2.2
  * adds `__engine.getParam` and `__engine.setParam` so E2E can read/write the
  * paramStore through the browser hook without importing engine internals.
+ * Task 2.5 adds `__engine.getLandmarkBlobCount` and `__engine.lastGridLayout`.
  * Gated by `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the
  * block tree-shakes in production.
  */
 
+import { __getLastBlobCount, __getLastGridLayout } from '../effects/handTrackingMosaic/manifest';
 import { paramStore } from './paramStore';
 import { listEffects } from './registry';
 
@@ -96,6 +98,8 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
       listEffects,
       getParam,
       setParam,
+      getLandmarkBlobCount: __getLastBlobCount,
+      lastGridLayout: __getLastGridLayout,
     },
   };
 }

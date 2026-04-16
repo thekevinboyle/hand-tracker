@@ -27,7 +27,7 @@ test.describe('Task 2.1: registry types', () => {
     expect(result.hasEngine).toBe(true);
     expect(result.hasListEffects).toBe(true);
     expect(result.isArray).toBe(true);
-    // No effects registered yet (Task 2.5 adds the first one).
-    expect(result.length).toBe(0);
+    // Task 2.5 registers the handTrackingMosaic effect at module load.
+    expect(result.length).toBe(1);
   });
 });

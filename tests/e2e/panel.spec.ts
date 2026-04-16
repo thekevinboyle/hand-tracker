@@ -46,22 +46,14 @@ test.describe('Task 2.2: paramStore + buildPaneFromManifest + Panel', () => {
     expect(shape.hasSetParam).toBe(true);
     expect(shape.hasListEffects).toBe(true);
 
-    // Round-trip: seed a section, write a value, read it back. Because the
-    // module singleton starts empty (Task 2.5 will seed defaults on
-    // registerEffect), we first install a `grid` section by calling set()
-    // after using setParam. But paramStore.set throws on unknown sections, so
-    // we exercise the hook by wrapping both calls in a single evaluate that
-    // uses the internal replace path. Instead, we use a dot-path that will
-    // eventually exist ('grid.columnCount') only if we seed it — so we do the
-    // seed via page.evaluate against the paramStore through a small bridge:
-    // for Task 2.2 the simplest test-surface fact is that getParam returns
-    // undefined for an unseeded key without throwing.
-    const missing = await page.evaluate(() => {
+    // Task 2.5 seeds paramStore with DEFAULT_PARAM_STATE on module load.
+    // Verify getParam reads the seeded default for grid.columnCount (D4: 12).
+    const columnCount = await page.evaluate(() => {
       type Hook = { __engine?: { getParam?: (k: string) => unknown } };
       const w = window as unknown as { __handTracker?: Hook };
       return w.__handTracker?.__engine?.getParam?.('grid.columnCount');
     });
-    expect(missing).toBeUndefined();
+    expect(columnCount).toBe(12);
 
     await page.waitForLoadState('networkidle');
     expect(pageErrors).toEqual([]);
