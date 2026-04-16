@@ -10,6 +10,7 @@ import { ErrorStates } from './ui/ErrorStates';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { PresetBar } from './ui/PresetBar';
+import { RecordButton } from './ui/RecordButton';
 import { Stage, type StageHandle } from './ui/Stage';
 
 export function App() {
@@ -124,6 +125,10 @@ export function App() {
           />
           <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
           <PresetBar paneRef={paneRef} />
+          {/* Task 4.5: Record the 2D overlay — Task 3.4's render() pre-
+              composites the WebGL mosaic into it, so captureStream()
+              on this canvas captures the full effect. */}
+          <RecordButton getCanvas={() => stageRef.current?.overlayCanvas ?? null} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error
