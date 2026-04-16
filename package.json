@@ -33,6 +33,7 @@
     "@playwright/test": "^1.49.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
+    "@types/bezier-easing": "^2.1.6",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

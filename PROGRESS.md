@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 3 complete (3.1 + 3.2 + 3.3 + 3.4 + 3.5 + 3.R done); Phase 4 next
+**Current Phase**: Phase 4 in progress (4.1 done); 4.2 next
 **Last updated**: 2026-04-16
 
 ---
@@ -14,7 +14,7 @@
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
-| 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
+| 4: Modulation, Presets, UX | in-progress | 1 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
 
@@ -60,7 +60,7 @@
 
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
-| 4.1 | ModulationRoute evaluator + defaults | pending | | | |
+| 4.1 | ModulationRoute evaluator + defaults | done | task/4-1-modulation-evaluator | 2026-04-16 | All L1-L3 green in 1 Ralph iteration (L4 N/A per task file — Task 4.R will cover); 25 new unit tests (257 total across 20 files); `src/engine/modulation.ts` exports ModulationSourceId + ModulationRoute + Landmark + applyModulation + resolveModulationSources + DEFAULT_MODULATION_ROUTES (2 routes per D13). Identity fast-path: untouched params return SAME reference; section-level structural sharing on writes. Bezier cache module-scoped + memoized per cp tuple. Integer rounding via Number.isInteger(current). Installed `@types/bezier-easing` dev dep. |
 | 4.2 | CubicBezier blade + modulation panel UI | pending | | | |
 | 4.3 | Preset schema + persistence + import/export | pending | | | |
 | 4.4 | Preset chevron cycler + ArrowLeft/Right | pending | | | |
