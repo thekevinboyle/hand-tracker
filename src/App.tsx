@@ -3,6 +3,10 @@ import type { Pane } from 'tweakpane';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
+import { applyModulation, resolveModulationSources } from './engine/modulation';
+import { modulationStore } from './engine/modulationStore';
+import { paramStore } from './engine/paramStore';
+import { reducedMotion } from './engine/reducedMotion';
 import { uploadVideoFrame } from './engine/renderer';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
@@ -83,6 +87,19 @@ export function App() {
             if (tex && videoEl) {
               uploadVideoFrame(tex, videoEl);
             }
+
+            // Task 4.1 + 4.6: per-frame modulation pass. Reduced-motion
+            // users see the current authored param values held stable
+            // (D26) — only the hand-driven layer pauses, Tweakpane edits
+            // still apply live. The evaluator's identity-fast-path means
+            // no-op frames cost one Map construction + one for-loop.
+            if (!reducedMotion.getIsReduced()) {
+              const sources = resolveModulationSources(ctx.landmarks);
+              const routes = modulationStore.getSnapshot().routes;
+              const next = applyModulation(routes, sources, paramStore.snapshot);
+              if (next !== paramStore.snapshot) paramStore.replace(next);
+            }
+
             const frame = tex ? { ...ctx, videoTexture: tex.texture } : ctx;
             effectInstance?.render(frame);
           },
