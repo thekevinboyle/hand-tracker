@@ -38,3 +38,4 @@ reports/**/*.png
 *.njsproj
 *.sln
 *.sw?
+.claude/scheduled_tasks.lock

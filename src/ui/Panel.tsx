@@ -20,6 +20,7 @@ import type { JSX } from 'react';
 import { useEffect, useRef } from 'react';
 import { buildPaneFromManifest } from '../engine/buildPaneFromManifest';
 import type { EffectManifest } from '../engine/manifest';
+import { buildModulationPage } from './ModulationPanel';
 
 export type PanelProps = {
   manifest: EffectManifest;
@@ -31,8 +32,14 @@ export function Panel({ manifest }: PanelProps): JSX.Element {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const { dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
+    const { pane, dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
+    // Task 4.2: attach the Modulation section after the effect-params tree.
+    // Dispose order matters — tear down the modulation subscriber + folders
+    // BEFORE the pane itself so dispose() doesn't fire on an already-torn
+    // container.
+    const disposeModulation = buildModulationPage(pane);
     return () => {
+      disposeModulation();
       dispose();
     };
   }, [manifest]);
