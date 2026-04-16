@@ -5,6 +5,7 @@ import { modulationStore } from './engine/modulationStore';
 import { initializePresetsIfEmpty } from './engine/presets';
 import './index.css';
 import { App } from './App';
+import { registerSW } from './registerSW';
 import { presetCycler } from './ui/PresetCycler';
 // Side-effect import: seeds paramStore + registers the handTrackingMosaic effect
 // in the global registry BEFORE React renders. Must be AFTER runtime imports.
@@ -38,3 +39,7 @@ createRoot(rootEl).render(
     <App />
   </StrictMode>,
 );
+
+// Task 5.1: register the production service worker AFTER render so it
+// doesn't block first paint. No-op in `pnpm dev` — see registerSW.ts.
+registerSW();
