@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 3 in progress (3.1 done); 3.2 next
+**Current Phase**: Phase 3 in progress (3.1 + 3.2 done); 3.3 next
 **Last updated**: 2026-04-16
 
 ---
@@ -13,7 +13,7 @@
 | 0: Orchestration | done | 12 / 12 | 12 | Research, discovery, scaffold, skills, plan, sharding, synergy — all complete |
 | 1: Foundation | done | 7 | 7 | Camera + MediaPipe + rVFC loop + Stage + 1.R regression |
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
-| 3: Mosaic Shader | in-progress | 1 | 6 | ogl mosaic inside hand-bounded polygon |
+| 3: Mosaic Shader | in-progress | 2 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | pending | 0 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | pending | 0 | 6 | Vercel live + all 8 error states + visual fidelity gate |
 | **Total** | | **0** | **32** | |
@@ -50,7 +50,7 @@
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
 | 3.1 | ogl renderer bootstrap + video texture | done | task/3-1-ogl-renderer-bootstrap | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 9 new unit tests (169 total across 15 files); 3 new E2E specs (26 total); `src/engine/renderer.ts` exports 4 factories (createOglRenderer + createVideoTexture + uploadVideoFrame + resizeRenderer); `src/engine/videoTextureRef.ts` broker publishes the Texture wrapper to devHooks; Stage.tsx owns renderer + texture lifecycle with StrictMode-safe teardown (`gl.deleteTexture` + `WEBGL_lose_context`); App.tsx's onFrame calls uploadVideoFrame + threads the raw WebGLTexture into `FrameContext.videoTexture`; `__engine.getVideoTextureHandle()` dev hook added. Shared `src/test/setup.ts` gained an ogl stub so Stage-mounting unit tests don't need per-file mocks. |
-| 3.2 | Mosaic fragment shader (GLSL ES 3.0) | pending | | | |
+| 3.2 | Mosaic fragment shader (GLSL ES 3.0) | done | task/3-2-mosaic-fragment-shader | 2026-04-16 | All 4 levels green in 1 Ralph iteration; 21 new unit tests (190 total across 16 files); 1 new E2E spec (27 total); `src/effects/handTrackingMosaic/shader.ts` exports VERTEX_SHADER + FRAGMENT_SHADER + MAX_REGIONS; fragment shader carries all 7 uniforms + step()-based AABB + bounded loop + feather guard; `__engine.testCompileShaders()` dev hook added — L4 confirms real Chromium WebGL2 accepts both shader sources. |
 | 3.3 | Hand polygon → active cells (winding number) | pending | | | |
 | 3.4 | Effect render() wire-up (overlay composites WebGL) | pending | | | |
 | 3.5 | Context-loss recovery + cleanup | pending | | | |

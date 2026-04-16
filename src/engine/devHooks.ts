@@ -10,11 +10,16 @@
  * force a specific landmark payload for deterministic blob/region tests.
  * Task 3.1 adds `__engine.getVideoTextureHandle` — returns the raw
  * `WebGLTexture` created by Stage's ogl renderer, or `null` pre-mount.
+ * Task 3.2 adds `__engine.testCompileShaders` — compiles the mosaic
+ * VERTEX/FRAGMENT strings in a throwaway WebGL2 context and returns a
+ * `{ vertex, fragment, log }` report so Playwright E2E can gate the real
+ * driver's acceptance of the shader source.
  * Gated by `import.meta.env.DEV` or `import.meta.env.MODE === 'test'` so the
  * block tree-shakes in production.
  */
 
 import { __getLastBlobCount, __getLastGridLayout } from '../effects/handTrackingMosaic/manifest';
+import { FRAGMENT_SHADER, VERTEX_SHADER } from '../effects/handTrackingMosaic/shader';
 import { setLandmarkOverride } from './landmarkOverride';
 import { paramStore } from './paramStore';
 import { listEffects } from './registry';
@@ -92,6 +97,46 @@ function setParam(dotPath: string, value: unknown): void {
   paramStore.set(dotPath, value);
 }
 
+/**
+ * Compile the mosaic VERTEX + FRAGMENT strings in a throwaway WebGL2 context
+ * and return per-shader COMPILE_STATUS + the driver info log. Used by the
+ * Task 3.2 L4 spec to gate that the real Chromium driver accepts the source
+ * before Task 3.4 links a Program against them. Returns
+ * `{ vertex: false, fragment: false, log: '<reason>' }` if the browser can't
+ * provide WebGL2 at all.
+ */
+function testCompileShaders(): { vertex: boolean; fragment: boolean; log: string } {
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl2') as WebGL2RenderingContext | null;
+  if (!gl) return { vertex: false, fragment: false, log: 'webgl2 unavailable' };
+
+  const report = { vertex: false, fragment: false, log: '' };
+  const sources: Array<[number, string, 'vertex' | 'fragment']> = [
+    [gl.VERTEX_SHADER, VERTEX_SHADER, 'vertex'],
+    [gl.FRAGMENT_SHADER, FRAGMENT_SHADER, 'fragment'],
+  ];
+  for (const [type, src, field] of sources) {
+    const shader = gl.createShader(type);
+    if (!shader) {
+      report.log += `[${field}] createShader returned null; `;
+      continue;
+    }
+    gl.shaderSource(shader, src);
+    gl.compileShader(shader);
+    const ok = gl.getShaderParameter(shader, gl.COMPILE_STATUS) === true;
+    report[field] = ok;
+    if (!ok) {
+      const info = gl.getShaderInfoLog(shader) ?? '(no info log)';
+      report.log += `[${field}] ${info.trim()}; `;
+    }
+    gl.deleteShader(shader);
+  }
+  // Release the throwaway context so we don't leak a GL slot.
+  const lose = gl.getExtension('WEBGL_lose_context');
+  lose?.loseContext();
+  return report;
+}
+
 if (SHOULD_EXPOSE && typeof window !== 'undefined') {
   const w = window as unknown as { __handTracker?: Record<string, unknown> };
   const existing = (w.__handTracker ?? {}) as Record<string, unknown>;
@@ -109,6 +154,7 @@ if (SHOULD_EXPOSE && typeof window !== 'undefined') {
       lastGridLayout: __getLastGridLayout,
       setFakeLandmarks: setLandmarkOverride,
       getVideoTextureHandle,
+      testCompileShaders,
     },
   };
 }
