@@ -1,0 +1,92 @@
+/*
+ * src/ui/primitives/ColorPicker.module.css — ColorPicker primitive styles
+ * (Task DR-7.5).
+ *
+ * Layout: text input + 20×20 native color swatch, flex-row, right-aligned.
+ * Visual: borderless text input, uppercase via text-transform; native
+ * swatch rendered square (no border, no radius) via ::-webkit-color-swatch
+ * and ::-moz-color-swatch overrides.
+ *
+ * Hover on text input underlines it (pixelcrash .symb-text-field pattern).
+ * Focus-visible on either input shows the standard blue focus ring.
+ *
+ * Reduced-motion: tokens.css collapses --duration-fast → 0s under
+ * `prefers-reduced-motion: reduce`. No per-component @media block needed.
+ *
+ * Authority:
+ *   - task-DR-7-5.md § Step 3 (CSS recipe)
+ *   - pixelcrash research § Components > 8. Color Picker Group
+ *   - `design-tokens-dark-palette` skill — token names
+ */
+
+.root {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-08);
+}
+
+.text {
+  width: var(--space-56); /* 56px text column (fits "#RRGGBB") */
+  height: var(--space-20);
+  padding: 0 var(--space-04);
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-family: var(--font-family);
+  letter-spacing: var(--letter-spacing-body);
+  text-transform: uppercase;
+  cursor: text;
+  transition: text-decoration-color var(--duration-fast) var(--ease-default);
+}
+
+.text:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-text-muted);
+}
+
+.text:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.swatch {
+  width: var(--space-20);
+  height: var(--space-20);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-0);
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: var(--radius-0);
+  padding: 0;
+}
+
+.swatch::-webkit-color-swatch-wrapper {
+  border: 0;
+  border-radius: var(--radius-0);
+  padding: 0;
+}
+
+.swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: var(--radius-0);
+  padding: 0;
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.root:has(:disabled) {
+  opacity: 0.4;
+  pointer-events: none;
+}
