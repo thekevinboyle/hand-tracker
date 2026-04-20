@@ -85,9 +85,13 @@ test.describe('Task 4.R: Phase 4 regression — modulation + presets + record + 
       undefined,
       { timeout: 10_000 },
     );
-    // PresetBar + default preset visible.
+    // PresetStrip + default preset visible.
+    // (DR-8.5 merged PresetBar + PresetActions into a single `<PresetStrip>`.
+    // `preset-name` is now an editable <input>, so read it with inputValue()
+    // instead of textContent(). The `preset-bar` testid migrates to the
+    // strip root; CRITICAL-03 keeps this contract unchanged.)
     await expect(page.getByTestId('preset-bar')).toBeVisible();
-    await expect(page.getByTestId('preset-name')).toHaveText('Default');
+    await expect(page.getByTestId('preset-name')).toHaveValue('Default');
     await snap(page, 1, 'initial-load');
 
     // Step 2 — modulation drives mosaic.tileSize when landmark[8].x = 0.9.
@@ -120,8 +124,9 @@ test.describe('Task 4.R: Phase 4 regression — modulation + presets + record + 
     expect(tileHigh).toBeLessThanOrEqual(64);
     await snap(page, 2, 'modulation-live');
 
-    // Step 3 — Save As "Phase4-Test". PresetActions uses `window.prompt`;
-    // Playwright's dialog handler accepts it with the desired name.
+    // Step 3 — Save As "Phase4-Test". PresetStrip (DR-8.5) uses
+    // `window.prompt`; Playwright's dialog handler accepts it with the
+    // desired name.
     page.once('dialog', (d) => {
       void d.accept('Phase4-Test');
     });
@@ -133,20 +138,22 @@ test.describe('Task 4.R: Phase 4 regression — modulation + presets + record + 
 
     // Step 4 — cycle forward to the new preset via the right chevron.
     await page.getByRole('button', { name: 'Next preset' }).click();
-    // After cycleNext, presetCycler fires onChange; the PresetBar re-renders.
+    // After cycleNext, presetCycler fires onChange; the PresetStrip re-renders.
     // The new preset is at the end of the list so after the first click the
     // bar shows the next preset alphabetically (storage order). Accept any
     // name that reflects the cycler actually advanced — a strict match is
     // brittle across test runs that leave presets in storage.
-    const nameAfterNext = await page.getByTestId('preset-name').textContent();
+    // (DR-8.5: `preset-name` is now an <input>; read via inputValue().)
+    const nameAfterNext = await page.getByTestId('preset-name').inputValue();
     expect(nameAfterNext).not.toBe('Default');
     await snap(page, 4, 'preset-cycled');
 
     // Step 5 — ArrowLeft returns to the prior preset. Clear focus first so
-    // the window keydown listener (not a Tweakpane input) receives the key.
+    // the window keydown listener (not the preset-name input) receives the
+    // key — the input-target guard in PresetStrip would otherwise swallow it.
     await page.locator('body').click({ position: { x: 5, y: 5 } });
     await page.keyboard.press('ArrowLeft');
-    const nameAfterLeft = await page.getByTestId('preset-name').textContent();
+    const nameAfterLeft = await page.getByTestId('preset-name').inputValue();
     expect(nameAfterLeft).not.toBe(nameAfterNext);
 
     // Step 6 — Record button: start → wait ~1.5 s → stop → .webm download.

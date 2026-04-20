@@ -14,7 +14,6 @@ import { ErrorStates } from './ui/ErrorStates';
 import { ModulationCard } from './ui/ModulationCard';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
-import { PresetBar } from './ui/PresetBar';
 import { Sidebar } from './ui/Sidebar';
 import { Stage, type StageHandle } from './ui/Stage';
 import { Toolbar } from './ui/Toolbar';
@@ -32,9 +31,10 @@ export function App() {
     setTextureGen((g) => g + 1);
   }, []);
   const stageRef = useRef<StageHandle | null>(null);
-  // Task 4.4: lifted so <PresetBar /> and <Panel /> share the same
-  // Tweakpane instance. Panel populates on mount; PresetBar consumes on
-  // each cycle for pane.refresh().
+  // Task 4.4 + DR-8.5: lifted so <PresetStrip /> (mounted via Sidebar's
+  // paneRef prop) and <Panel /> share the same Tweakpane instance. Panel
+  // populates on mount; PresetStrip consumes on each cycle for
+  // pane.refresh(). DR-8.6 retires Tweakpane and this ref becomes dead.
   const paneRef = useRef<Pane | null>(null);
 
   // Render-loop lifetime is owned here, NOT in Stage.tsx (see
@@ -157,10 +157,11 @@ export function App() {
               so the new chrome owns the canonical names. */}
           {/* Task DR-8.3: ModulationCard mounts below LAYER 1 via Sidebar's
               modulationSlot prop. Subscribes to modulationStore via
-              useSyncExternalStore; retires the Tweakpane folder-per-route UI. */}
-          <Sidebar modulationSlot={<ModulationCard />} />
+              useSyncExternalStore; retires the Tweakpane folder-per-route UI.
+              Task DR-8.5: paneRef threads through Sidebar → PresetStrip for
+              pane.refresh() on every cycle while Tweakpane is still live. */}
+          <Sidebar modulationSlot={<ModulationCard />} paneRef={paneRef} />
           <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
-          <PresetBar paneRef={paneRef} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error

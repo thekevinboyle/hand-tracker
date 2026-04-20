@@ -22,39 +22,34 @@ import type { Pane } from 'tweakpane';
 import { buildPaneFromManifest } from '../engine/buildPaneFromManifest';
 import type { EffectManifest } from '../engine/manifest';
 // Task DR-8.3: modulation UI moved to `<ModulationCard>` (React); the
-// imperative `buildModulationPage` Tweakpane builder was deleted. Panel.tsx
-// itself is scheduled for full retirement in DR-8.6.
-import { PresetActions } from './PresetActions';
+// imperative `buildModulationPage` Tweakpane builder was deleted.
+// Task DR-8.5: `<PresetActions>` was merged into the sidebar's
+// `<PresetStrip>` — Panel no longer hosts a preset bar. Panel.tsx itself
+// is scheduled for full retirement in DR-8.6 once `useParam`-subscribed
+// primitives replace the final Tweakpane bindings.
 
 export type PanelProps = {
   manifest: EffectManifest;
   /** Optional shared ref — when provided, Panel populates it with the
-   *  Tweakpane instance on mount + nulls it on unmount. App.tsx (Task
-   *  4.4) passes a ref it also hands to <PresetBar /> so keyboard /
+   *  Tweakpane instance on mount + nulls it on unmount. App.tsx passes a
+   *  ref it also hands to the sidebar's `<PresetStrip>` so keyboard /
    *  chevron cycling can call `pane.refresh()` after a preset load. */
   paneRef?: RefObject<Pane | null>;
 };
 
 export function Panel({ manifest, paneRef: externalPaneRef }: PanelProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Internal fallback ref so `<PresetActions>` inside this Panel can call
-  // `pane.refresh()` even when App.tsx doesn't pass its own ref down. The
-  // external ref (if supplied) is also populated so siblings like
-  // `<PresetBar />` see the same instance.
-  const internalPaneRef = useRef<Pane | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const { pane, dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
-    internalPaneRef.current = pane;
     if (externalPaneRef) externalPaneRef.current = pane;
     // Task DR-8.3: modulation is no longer Tweakpane-owned — the React
     // `<ModulationCard>` subscribes to `modulationStore` directly. Panel.tsx
     // now only hosts effect-params until DR-8.6 retires it entirely.
     return () => {
       dispose();
-      internalPaneRef.current = null;
       if (externalPaneRef) externalPaneRef.current = null;
     };
   }, [manifest, externalPaneRef]);
@@ -66,7 +61,6 @@ export function Panel({ manifest, paneRef: externalPaneRef }: PanelProps): JSX.E
     // can still target the Tweakpane host in isolation until DR-8.6 retires
     // this component entirely.
     <div className="panel-container" data-testid="tweakpane-panel-root">
-      <PresetActions paneRef={internalPaneRef} />
       <div ref={containerRef} data-testid="tweakpane-params-panel" />
     </div>
   );

@@ -1,0 +1,100 @@
+/*
+ * src/ui/PresetStrip.module.css — Preset strip styles (Task DR-8.5).
+ *
+ * Horizontal two-row flex layout that lives inside Sidebar.header:
+ *   row 1: [‹] [name] [›]     — the chevron cycler
+ *   row 2: [Save] [Save As] [Delete] [Export] [Import]
+ *
+ * Tokens only — no hardcoded hex or px (DR5 + DR-6.1).
+ * Reduced motion inherited via the global `--duration-*` override in
+ * tokens.css — no per-component @media query needed.
+ *
+ * Authority:
+ *   - DISCOVERY.md DR16 — strip sits at top of sidebar.
+ *   - task-DR-8-5.md § Step 2 — layout recipe.
+ *   - `design-tokens-dark-palette` skill — token names.
+ */
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-08);
+  padding: var(--space-08) 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-m);
+}
+
+.cycler {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-08);
+}
+
+.name {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  font: inherit;
+  text-align: center;
+  padding: var(--space-04);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.name:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-04);
+}
+
+/*
+ * Import is a <label> wrapping a hidden <input type="file"> — the label is
+ * the visible click target. Styling mirrors Button's secondary variant so
+ * the strip reads as a consistent row of buttons. We deliberately avoid
+ * the square→pill hover here because the label is a hybrid element; the
+ * reduced-motion override still applies via tokens.
+ */
+.importLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--space-32);
+  padding: 0 var(--space-12);
+  background-color: var(--color-button-secondary-bg);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-body);
+  border-radius: var(--radius-0);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-radius var(--duration-short) var(--ease-default),
+    background-color var(--duration-short) var(--ease-default) 0.1s;
+}
+
+.importLabel:hover {
+  border-radius: var(--radius-pill);
+  background-color: var(--color-button-secondary-bg-hover);
+}
+
+.importLabel:focus-within {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.hiddenFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
