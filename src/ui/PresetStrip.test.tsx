@@ -1,5 +1,5 @@
 /**
- * Unit tests for PresetStrip (Task DR-8.5).
+ * Unit tests for PresetStrip (Task DR-8.5; simplified DR-8.6).
  *
  * The strip collapses the retired PresetBar + PresetActions; these tests
  * cover the union of their behavior:
@@ -8,14 +8,17 @@
  *   - presetCycler.onChange → re-render contract
  *   - testid contract: preset-bar, preset-name, preset-actions
  *
+ * DR-8.6: the `paneRef` prop + `refreshPane()` helper are gone — Tweakpane
+ * is retired, so every `useParam`-subscribed primitive auto-rerenders on
+ * paramStore changes. No explicit refresh handle is needed.
+ *
  * Strategy: mock `src/engine/presets` so file I/O is inspectable, then
  * dynamic-import the module under test after `vi.resetModules()` so the
  * cycler singleton picks up the fresh `listPresets` stub per test.
  */
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { act, createRef } from 'react';
-import type { Pane } from 'tweakpane';
+import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Preset } from '../engine/presets';
 
@@ -105,34 +108,21 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function makePaneRef(): {
-  ref: React.RefObject<Pane | null>;
-  refresh: ReturnType<typeof vi.fn>;
-} {
-  const refresh = vi.fn();
-  const ref = createRef<Pane | null>() as React.RefObject<Pane | null>;
-  ref.current = { refresh } as unknown as Pane;
-  return { ref, refresh };
-}
-
 describe('Task DR-8.5: PresetStrip — rendering + testids', () => {
   it('renders the preset-bar, preset-name, and preset-actions testids', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     expect(screen.getByTestId('preset-bar')).toBeInTheDocument();
     expect(screen.getByTestId('preset-name')).toBeInTheDocument();
     expect(screen.getByTestId('preset-actions')).toBeInTheDocument();
   });
 
   it('seeds the name input with the current preset (index 0 → Alpha)', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     expect(screen.getByTestId('preset-name')).toHaveValue('Alpha');
   });
 
   it('renders chevron icon buttons with accessible names', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     expect(screen.getByRole('button', { name: 'Previous preset' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next preset' })).toBeInTheDocument();
   });
@@ -141,31 +131,22 @@ describe('Task DR-8.5: PresetStrip — rendering + testids', () => {
     listPresetsMock.mockReturnValue([FIXTURE[0] as Preset]);
     vi.resetModules();
     ({ PresetStrip } = await import('./PresetStrip'));
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     expect(screen.getByRole('button', { name: 'Previous preset' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Next preset' })).toBeDisabled();
-  });
-
-  it('renders without a paneRef prop (DR-8.6 forward compatibility)', () => {
-    render(<PresetStrip />);
-    expect(screen.getByTestId('preset-bar')).toBeInTheDocument();
   });
 });
 
 describe('Task DR-8.5: PresetStrip — chevron cycling', () => {
-  it('Next chevron advances + loads + refreshes pane', () => {
-    const { ref, refresh } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+  it('Next chevron advances + loads the next preset', () => {
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Next preset' }));
     expect(screen.getByTestId('preset-name')).toHaveValue('Beta');
     expect(loadPresetMock).toHaveBeenCalledWith('Beta');
-    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it('Prev chevron wraps from index 0 → last', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Previous preset' }));
     expect(screen.getByTestId('preset-name')).toHaveValue('Gamma');
     expect(loadPresetMock).toHaveBeenCalledWith('Gamma');
@@ -174,23 +155,20 @@ describe('Task DR-8.5: PresetStrip — chevron cycling', () => {
 
 describe('Task DR-8.5: PresetStrip — window keydown', () => {
   it('ArrowRight cycles forward', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(screen.getByTestId('preset-name')).toHaveValue('Beta');
     expect(loadPresetMock).toHaveBeenCalledWith('Beta');
   });
 
   it('ArrowLeft cycles backward (wraps)', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.keyDown(window, { key: 'ArrowLeft' });
     expect(screen.getByTestId('preset-name')).toHaveValue('Gamma');
   });
 
   it('input-target guard: keydown inside the preset-name input does NOT cycle', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const input = screen.getByTestId('preset-name');
     fireEvent.keyDown(input, { key: 'ArrowRight' });
     expect(screen.getByTestId('preset-name')).toHaveValue('Alpha');
@@ -198,8 +176,7 @@ describe('Task DR-8.5: PresetStrip — window keydown', () => {
   });
 
   it('removes the keydown listener on unmount', () => {
-    const { ref } = makePaneRef();
-    const { unmount } = render(<PresetStrip paneRef={ref} />);
+    const { unmount } = render(<PresetStrip />);
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     expect(loadPresetMock).toHaveBeenCalledTimes(1);
     unmount();
@@ -210,8 +187,7 @@ describe('Task DR-8.5: PresetStrip — window keydown', () => {
 
 describe('Task DR-8.5: PresetStrip — action buttons', () => {
   it('Save calls savePreset with the current name and refreshes the cycler', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const refreshSpy = vi.spyOn(presetCycler, 'refresh');
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(savePresetMock).toHaveBeenCalledWith('Alpha');
@@ -220,8 +196,7 @@ describe('Task DR-8.5: PresetStrip — action buttons', () => {
 
   it('Save As accepts prompt input, saves, updates name, refreshes cycler', () => {
     const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('MyPreset');
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Save As' }));
     expect(promptSpy).toHaveBeenCalled();
     expect(savePresetMock).toHaveBeenCalledWith('MyPreset');
@@ -232,39 +207,34 @@ describe('Task DR-8.5: PresetStrip — action buttons', () => {
 
   it('Save As cancel (prompt returns null) does not save', () => {
     vi.spyOn(window, 'prompt').mockReturnValue(null);
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Save As' }));
     expect(savePresetMock).not.toHaveBeenCalled();
   });
 
   it('Save As empty string (whitespace only) does not save', () => {
     vi.spyOn(window, 'prompt').mockReturnValue('   ');
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Save As' }));
     expect(savePresetMock).not.toHaveBeenCalled();
   });
 
   it('Delete confirms, then calls deletePreset', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(deletePresetMock).toHaveBeenCalledWith('Alpha');
   });
 
   it('Delete cancel (confirm=false) does NOT delete', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(deletePresetMock).not.toHaveBeenCalled();
   });
 
   it('Export triggers exportPresetFile for the current name', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     fireEvent.click(screen.getByRole('button', { name: /Export/i }));
     expect(exportPresetFileMock).toHaveBeenCalledWith('Alpha');
   });
@@ -278,8 +248,7 @@ describe('Task DR-8.5: PresetStrip — action buttons', () => {
       modulationRoutes: [],
       createdAt: '2026-04-19T00:00:00.000Z',
     });
-    const { ref, refresh } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const fileInput = screen
       .getByTestId('preset-actions')
       .querySelector('input[type="file"]') as HTMLInputElement;
@@ -294,14 +263,12 @@ describe('Task DR-8.5: PresetStrip — action buttons', () => {
     await vi.waitFor(() => {
       expect(screen.getByTestId('preset-name')).toHaveValue('Imported');
     });
-    expect(refresh).toHaveBeenCalled();
   });
 
   it('Import: failure surfaces via alert and does not update state', async () => {
     importPresetFileMock.mockRejectedValue(new Error('bad JSON'));
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const fileInput = screen
       .getByTestId('preset-actions')
       .querySelector('input[type="file"]') as HTMLInputElement;
@@ -316,30 +283,25 @@ describe('Task DR-8.5: PresetStrip — action buttons', () => {
 });
 
 describe('Task DR-8.5: PresetStrip — name input blur', () => {
-  it('blur with an existing preset name triggers loadPreset + pane refresh', () => {
-    const { ref, refresh } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+  it('blur with an existing preset name triggers loadPreset', () => {
+    render(<PresetStrip />);
     const input = screen.getByTestId('preset-name') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'Beta' } });
     fireEvent.blur(input);
     expect(loadPresetMock).toHaveBeenCalledWith('Beta');
-    expect(refresh).toHaveBeenCalled();
   });
 
   it('blur with an unknown preset name silently no-ops', () => {
     loadPresetMock.mockReturnValue(false);
-    const { ref, refresh } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const input = screen.getByTestId('preset-name') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'DoesNotExist' } });
     fireEvent.blur(input);
     expect(loadPresetMock).toHaveBeenCalledWith('DoesNotExist');
-    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('blur with empty name is a no-op (no loadPreset call)', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     const input = screen.getByTestId('preset-name') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '' } });
     fireEvent.blur(input);
@@ -349,8 +311,7 @@ describe('Task DR-8.5: PresetStrip — name input blur', () => {
 
 describe('Task DR-8.5: PresetStrip — external store integration', () => {
   it('re-renders when presetCycler.onChange fires from a goTo() call', () => {
-    const { ref } = makePaneRef();
-    render(<PresetStrip paneRef={ref} />);
+    render(<PresetStrip />);
     expect(screen.getByTestId('preset-name')).toHaveValue('Alpha');
     // Wrap in act() — goTo triggers a state update in the external store
     // which fans out to every subscriber's React setState.

@@ -16,10 +16,15 @@
  *     past the end lands on index 0 (D30).
  *   - `currentIndex` is clamped to `[0, length)` on refresh so deleting
  *     the currently-cycled preset doesn't leave the index dangling.
- *   - No React imports. The React binding lives in PresetBar.tsx.
+ *   - No React imports. The React binding lives in PresetStrip.tsx.
+ *
+ * Task DR-8.6: retired the optional `pane?: Pane` argument that used to
+ * force a Tweakpane `pane.refresh()` after every preset load. The new
+ * custom param components subscribe to paramStore via useSyncExternalStore;
+ * `paramStore.replace(next)` inside `loadPreset()` already notifies every
+ * subscriber on the next tick, so no explicit refresh handle is needed.
  */
 
-import type { Pane } from 'tweakpane';
 import { listPresets, loadPreset, type Preset } from '../engine/presets';
 
 export type CyclerState = {
@@ -32,20 +37,12 @@ export type CyclerChangeHandler = (state: CyclerState) => void;
 export type PresetCycler = {
   getState(): CyclerState;
   onChange(handler: CyclerChangeHandler): () => void;
-  cycleNext(pane?: Pane | null): void;
-  cyclePrev(pane?: Pane | null): void;
-  goTo(index: number, pane?: Pane | null): void;
+  cycleNext(): void;
+  cyclePrev(): void;
+  goTo(index: number): void;
   /** Re-read listPresets() and clamp currentIndex. Does NOT load. */
   refresh(): void;
 };
-
-/** Tweakpane v4's concrete Pane inherits refresh() from FolderApi but
- *  doesn't re-expose it in the TS declaration. Widen at the call site. */
-function callPaneRefresh(pane: Pane | null | undefined): void {
-  if (!pane) return;
-  const withRefresh = pane as unknown as { refresh?: () => void };
-  withRefresh.refresh?.();
-}
 
 export function createPresetCycler(): PresetCycler {
   let state: CyclerState = { presets: listPresets(), currentIndex: 0 };
@@ -60,14 +57,13 @@ export function createPresetCycler(): PresetCycler {
     notify();
   }
 
-  function applyIndexAndLoad(nextIndex: number, pane?: Pane | null): void {
+  function applyIndexAndLoad(nextIndex: number): void {
     const { presets } = state;
     if (presets.length === 0) return;
     const preset = presets[nextIndex];
     if (!preset) return;
     setState({ presets, currentIndex: nextIndex });
     loadPreset(preset.name);
-    callPaneRefresh(pane);
   }
 
   return {
@@ -82,25 +78,25 @@ export function createPresetCycler(): PresetCycler {
       };
     },
 
-    cycleNext(pane?: Pane | null): void {
+    cycleNext(): void {
       const { presets, currentIndex } = state;
       if (presets.length === 0) return;
       const nextIndex = (currentIndex + 1) % presets.length;
-      applyIndexAndLoad(nextIndex, pane);
+      applyIndexAndLoad(nextIndex);
     },
 
-    cyclePrev(pane?: Pane | null): void {
+    cyclePrev(): void {
       const { presets, currentIndex } = state;
       if (presets.length === 0) return;
       const nextIndex = (currentIndex - 1 + presets.length) % presets.length;
-      applyIndexAndLoad(nextIndex, pane);
+      applyIndexAndLoad(nextIndex);
     },
 
-    goTo(index: number, pane?: Pane | null): void {
+    goTo(index: number): void {
       const { presets } = state;
       if (presets.length === 0) return;
       if (index < 0 || index >= presets.length) return;
-      applyIndexAndLoad(index, pane);
+      applyIndexAndLoad(index);
     },
 
     refresh(): void {

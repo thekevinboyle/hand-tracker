@@ -149,10 +149,12 @@ test.describe('Task 2.R: Phase 2 regression — engine + overlay', () => {
     });
   });
 
-  test('panel root is mounted (params-panel + tweakpane dom)', async ({ page }) => {
+  test('panel root is mounted (panel-root + params-panel testids)', async ({ page }) => {
+    // DR-8.6 replaced the Tweakpane Panel with the Sidebar + LayerCard1
+    // chrome. The `panel-root` + `params-panel` testids migrated cleanly;
+    // assert on them instead of the retired `.tp-rotv` Tweakpane class.
+    await expect(page.getByTestId('panel-root')).toBeVisible();
     await expect(page.getByTestId('params-panel')).toBeVisible();
-    // Tweakpane renders a `.tp-rotv` root inside the container.
-    await expect(page.locator('.tp-rotv')).toBeVisible();
   });
 
   test('grid default: 12 non-uniform columns, initial-load + grid-cols-before snaps', async ({

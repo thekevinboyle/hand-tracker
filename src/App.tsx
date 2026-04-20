@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Pane } from 'tweakpane';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
@@ -12,8 +11,8 @@ import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
 import { ModulationCard } from './ui/ModulationCard';
-import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
+import { PresetStrip } from './ui/PresetStrip';
 import { Sidebar } from './ui/Sidebar';
 import { Stage, type StageHandle } from './ui/Stage';
 import { Toolbar } from './ui/Toolbar';
@@ -31,11 +30,6 @@ export function App() {
     setTextureGen((g) => g + 1);
   }, []);
   const stageRef = useRef<StageHandle | null>(null);
-  // Task 4.4 + DR-8.5: lifted so <PresetStrip /> (mounted via Sidebar's
-  // paneRef prop) and <Panel /> share the same Tweakpane instance. Panel
-  // populates on mount; PresetStrip consumes on each cycle for
-  // pane.refresh(). DR-8.6 retires Tweakpane and this ref becomes dead.
-  const paneRef = useRef<Pane | null>(null);
 
   // Render-loop lifetime is owned here, NOT in Stage.tsx (see
   // hand-tracker-fx-architecture skill). Stage's onVideoReady populates the
@@ -92,9 +86,8 @@ export function App() {
 
             // Task 4.1 + 4.6: per-frame modulation pass. Reduced-motion
             // users see the current authored param values held stable
-            // (D26) — only the hand-driven layer pauses, Tweakpane edits
-            // still apply live. The evaluator's identity-fast-path means
-            // no-op frames cost one Map construction + one for-loop.
+            // (D26) — only the hand-driven layer pauses, direct param
+            // edits from the sidebar still apply live.
             if (!reducedMotion.getIsReduced()) {
               const sources = resolveModulationSources(ctx.landmarks);
               const routes = modulationStore.getSnapshot().routes;
@@ -134,40 +127,34 @@ export function App() {
       {state === 'PROMPT' && <PrePromptCard onAllow={retry} />}
       {state !== 'PROMPT' && state !== 'GRANTED' && <ErrorStates state={state} onRetry={retry} />}
       {state === 'GRANTED' && (
-        <>
-          {/* Task DR-8.1: Toolbar replaces the old floating RecordButton.
-              Wordmark left + CellSizePicker center + inline Record button
-              right. Task 4.5's overlay-canvas capture semantics are
-              preserved — the getCanvas callback still returns the 2D
-              overlay so captureStream() picks up the pre-composited
-              mosaic. */}
+        // Task DR-8.6: new flex composition.
+        //   .app-layout → column (Toolbar stacks above the body row).
+        //   .app-body   → row (Stage grows to fill, Sidebar is fixed-width).
+        // Stage moved off `position: fixed` (see Stage.css) so it flexes
+        // inside the row. Toolbar + Sidebar also dropped their fixed
+        // positioning — everything now flows inside this layout.
+        <div className="app-layout">
+          {/* Toolbar: wordmark left, CellSizePicker center, Record right.
+              Task 4.5's overlay-canvas capture semantics are preserved —
+              the getCanvas callback still returns the 2D overlay so
+              captureStream() picks up the pre-composited mosaic. */}
           <Toolbar getCanvas={() => stageRef.current?.overlayCanvas ?? null} />
-          <Stage
-            ref={stageRef}
-            stream={stream}
-            mirror
-            onVideoReady={(el) => setVideoEl(el)}
-            onTextureRecreated={handleTextureRecreated}
-          />
-          {/* Task DR-8.2: new right-column Sidebar hosting LayerCard1
-              (all 14 manifest params). Owns the `panel-root` +
-              `params-panel` testids going forward. The Tweakpane `<Panel />`
-              stays mounted until DR-8.6 retires it — its testids have been
-              renamed (`tweakpane-panel-root` / `tweakpane-params-panel`)
-              so the new chrome owns the canonical names. */}
-          {/* Task DR-8.3: ModulationCard mounts below LAYER 1 via Sidebar's
-              modulationSlot prop. Subscribes to modulationStore via
-              useSyncExternalStore; retires the Tweakpane folder-per-route UI.
-              Task DR-8.5: paneRef threads through Sidebar → PresetStrip for
-              pane.refresh() on every cycle while Tweakpane is still live. */}
-          <Sidebar modulationSlot={<ModulationCard />} paneRef={paneRef} />
-          <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
+          <div className="app-body">
+            <Stage
+              ref={stageRef}
+              stream={stream}
+              mirror
+              onVideoReady={(el) => setVideoEl(el)}
+              onTextureRecreated={handleTextureRecreated}
+            />
+            <Sidebar presetStripSlot={<PresetStrip />} modulationSlot={<ModulationCard />} />
+          </div>
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error
             </p>
           ) : null}
-        </>
+        </div>
       )}
     </main>
   );

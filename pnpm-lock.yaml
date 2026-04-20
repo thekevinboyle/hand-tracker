@@ -11,9 +11,6 @@ importers:
       '@mediapipe/tasks-vision':
         specifier: 0.10.34
         version: 0.10.34
-      '@tweakpane/plugin-essentials':
-        specifier: ^0.2.1
-        version: 0.2.1(tweakpane@4.0.5)
       bezier-easing:
         specifier: ^2.1.0
         version: 2.1.0
@@ -26,9 +23,6 @@ importers:
       react-dom:
         specifier: ^19.2.4
         version: 19.2.5(react@19.2.5)
-      tweakpane:
-        specifier: ^4.0.5
-        version: 4.0.5
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.0.0
@@ -489,11 +483,6 @@ packages:
         optional: true
       '@types/react-dom':
         optional: true
-
-  '@tweakpane/plugin-essentials@0.2.1':
-    resolution: {integrity: sha512-VbFU1/uD+CJNFQdfLXUOLjeG5HyUZH97Ox9CxmyVetg1hqjVun3C83HAGFULyhKzl8tSgii8jr304r8QpdHwzQ==}
-    peerDependencies:
-      tweakpane: ^4.0.0
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -1033,9 +1022,6 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  tweakpane@4.0.5:
-    resolution: {integrity: sha512-rxEXdSI+ArlG1RyO6FghC4ZUX8JkEfz8F3v1JuteXSV0pEtHJzyo07fcDG+NsJfN5L39kSbCYbB9cBGHyuI/tQ==}
-
   typescript@6.0.2:
     resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
     engines: {node: '>=14.17'}
@@ -1450,10 +1436,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
       '@types/react-dom': 19.2.3(@types/react@19.2.14)
-
-  '@tweakpane/plugin-essentials@0.2.1(tweakpane@4.0.5)':
-    dependencies:
-      tweakpane: 4.0.5
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
@@ -1971,8 +1953,6 @@ snapshots:
 
   tslib@2.8.1:
     optional: true
-
-  tweakpane@4.0.5: {}
 
   typescript@6.0.2: {}
 

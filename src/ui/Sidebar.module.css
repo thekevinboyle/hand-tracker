@@ -1,40 +1,38 @@
 /*
- * src/ui/Sidebar.module.css — Sidebar styles (Task DR-8.2).
+ * src/ui/Sidebar.module.css — Sidebar styles (Task DR-8.2, simplified DR-8.6).
  *
  * Right-column vertical panel hosting LayerCard1 + (future) ModulationCard +
- * (future) PresetStrip. Fixed width 340px, full-height below the Toolbar,
- * scrollable when content overflows.
+ * (future) PresetStrip. Fixed width 34rem, scrollable when content overflows.
  *
- * Positioning:
- *   - `position: fixed; top: 0; right: 0; bottom: 0` pins the sidebar to
- *     the right edge. Top padding accounts for the Toolbar's 44px height
- *     (--space-44) plus the 24px sidebar gutter.
- *   - width fixed at 340px — pixelcrash reference hits that width exactly
- *     at 1440×900 viewport.
- *   - z-index 140 — just BELOW the Toolbar (150) so drag/click targets at
- *     the top of the sidebar don't shadow the cell-size picker. Above the
- *     Stage (default 0) so params are always reachable.
- *   - pointer-events: auto — the sidebar is always interactive (unlike
- *     Toolbar which lets empty space fall through to PresetActions during
- *     the DR-8.1→DR-8.6 transition).
+ * Task DR-8.6: dropped `position: fixed`. The sidebar now flows as a plain
+ * flex child of `.app-body` (defined in src/index.css). App layout:
+ *
+ *     .app-layout (column)
+ *       <Toolbar>             (row 1)
+ *       .app-body (row)
+ *         <Stage>               (flex: 1 — grows)
+ *         <Sidebar>             (flex: 0 0 34rem — right column)
+ *
+ * Height is inherited from the flex row (`align-items: stretch` default on
+ * `.app-body`), so the sidebar fills from below the Toolbar to the bottom
+ * of the viewport automatically. `min-height: 0` lets the inner
+ * scroll region work inside a flex parent.
  *
  * Colors + spacing come straight from tokens — no hardcoded hex or px.
  * Reduced motion is handled globally via tokens.css.
  *
  * Authority:
+ *   - DISCOVERY.md DR3 — Tweakpane retirement.
  *   - DISCOVERY.md DR8 — sidebar hosts LAYER + Modulation.
- *   - task-DR-8-2.md § Step 4 — CSS recipe.
+ *   - task-DR-8-2.md § Step 4, task-DR-8-6.md — layout recipe.
  *   - `design-tokens-dark-palette` skill — token names.
  */
 
 .sidebar {
-  position: fixed;
-  top: var(--space-44);
-  right: 0;
-  bottom: 0;
+  flex: 0 0 34rem;
   width: 34rem;
   min-width: 34rem;
-  z-index: 140;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
@@ -44,7 +42,6 @@
   font-family: var(--font-family);
   overflow-y: auto;
   overflow-x: hidden;
-  pointer-events: auto;
 }
 
 .header {

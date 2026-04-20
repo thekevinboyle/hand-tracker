@@ -29,23 +29,23 @@
  *     inside the name input untouched — identical behavior to the
  *     retired PresetBar.
  *
- * Pane ref transition:
- *   - `paneRef` stays optional so App.tsx can thread the Tweakpane Pane
- *     through for `pane.refresh()` until DR-8.6 retires Tweakpane. After
- *     that cut the arg becomes dead — `useParam`-subscribed primitives
- *     re-render on paramStore writes automatically.
+ * Task DR-8.6: retired the `paneRef` prop + `refreshPane()` helper. With
+ * Tweakpane gone, every `useParam`-subscribed primitive re-reads
+ * paramStore on its next tick via useSyncExternalStore; no imperative
+ * refresh handle is needed. `loadPreset()` already calls
+ * `paramStore.replace(next)` which fans out to every subscriber.
  *
  * Authority:
+ *   - DISCOVERY.md DR3 — Tweakpane retirement.
  *   - DISCOVERY.md DR16 — Merge PresetBar + PresetActions into one strip.
  *   - DISCOVERY.md §7 — Preserve preset-bar / preset-name / preset-actions.
- *   - task-DR-8-5.md § Implementation Blueprint.
+ *   - task-DR-8-6.md § Implementation Blueprint.
  *   - `custom-param-components` skill — PresetStrip pattern.
  *   - `design-tokens-dark-palette` skill — tokens only.
  */
 
-import type { ChangeEvent, FocusEvent, JSX, RefObject } from 'react';
+import type { ChangeEvent, FocusEvent, JSX } from 'react';
 import { useEffect, useState } from 'react';
-import type { Pane } from 'tweakpane';
 import {
   deletePreset,
   exportPresetFile,
@@ -57,27 +57,11 @@ import { type CyclerState, presetCycler } from './PresetCycler';
 import styles from './PresetStrip.module.css';
 import { Button } from './primitives/Button';
 
-export type PresetStripProps = {
-  /** Threaded through for `pane.refresh()` while Tweakpane is still live.
-   *  DR-8.6 retires Tweakpane and this arg becomes dead. Optional from
-   *  day one so tests can omit it. */
-  paneRef?: RefObject<Pane | null>;
-};
-
-/** Tweakpane v4's concrete Pane inherits `refresh()` from FolderApi but
- *  doesn't re-expose it in the TS declaration. Widen at the call site —
- *  same pattern as `PresetCycler.callPaneRefresh` + `buildPaneFromManifest`. */
-function refreshPane(paneRef?: RefObject<Pane | null>): void {
-  if (!paneRef) return;
-  const pane = paneRef.current as unknown as { refresh?: () => void } | null;
-  pane?.refresh?.();
-}
-
 function readInitialName(state: CyclerState): string {
   return state.presets[state.currentIndex]?.name ?? 'Default';
 }
 
-export function PresetStrip({ paneRef }: PresetStripProps = {}): JSX.Element {
+export function PresetStrip(): JSX.Element {
   const [cyclerState, setCyclerState] = useState<CyclerState>(() => presetCycler.getState());
   const [currentName, setCurrentName] = useState<string>(() =>
     readInitialName(presetCycler.getState()),
@@ -117,27 +101,27 @@ export function PresetStrip({ paneRef }: PresetStripProps = {}): JSX.Element {
       if (target instanceof HTMLTextAreaElement) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        presetCycler.cyclePrev(paneRef?.current ?? undefined);
+        presetCycler.cyclePrev();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        presetCycler.cycleNext(paneRef?.current ?? undefined);
+        presetCycler.cycleNext();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
     };
-  }, [paneRef]);
+  }, []);
 
   const disabled = cyclerState.presets.length <= 1;
   const canAct = currentName.length > 0;
 
   function handlePrev(): void {
-    presetCycler.cyclePrev(paneRef?.current ?? undefined);
+    presetCycler.cyclePrev();
   }
 
   function handleNext(): void {
-    presetCycler.cycleNext(paneRef?.current ?? undefined);
+    presetCycler.cycleNext();
   }
 
   function handleSave(): void {
@@ -178,7 +162,6 @@ export function PresetStrip({ paneRef }: PresetStripProps = {}): JSX.Element {
       const preset = await importPresetFile(file, { loadImmediately: true });
       setCurrentName(preset.name);
       presetCycler.refresh();
-      refreshPane(paneRef);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       window.alert(`Import failed: ${msg}`);
@@ -192,7 +175,6 @@ export function PresetStrip({ paneRef }: PresetStripProps = {}): JSX.Element {
     if (!name) return;
     if (loadPreset(name)) {
       setCurrentName(name);
-      refreshPane(paneRef);
     }
   }
 

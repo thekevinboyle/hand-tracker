@@ -48,9 +48,10 @@ if (isShowcase) {
   });
 } else {
   // Task 4.2: seed the modulation store with D13's default routes so the
-  // Modulation panel and the render-loop evaluator both see the baseline on
-  // first frame. Tests that mount <Panel /> with a different route set skip
-  // this branch because the modulationStore singleton is only seeded here.
+  // ModulationCard and the render-loop evaluator both see the baseline on
+  // first frame. Unit tests that mount the sidebar with a different route
+  // set skip this branch because the modulationStore singleton is only
+  // seeded here.
   modulationStore.replaceRoutes(DEFAULT_MODULATION_ROUTES);
 
   // Task 4.3: seed the first-launch Default preset from the current live
@@ -60,9 +61,11 @@ if (isShowcase) {
   initializePresetsIfEmpty();
 
   // Task 4.4: the PresetCycler singleton was constructed at module-import
-  // time (via the App → PresetBar → PresetCycler chain) BEFORE the preset
-  // store was seeded, so its initial snapshot captured an empty list.
-  // Refresh now so the first render already shows the Default preset.
+  // time (via the App → PresetStrip → PresetCycler chain) BEFORE the
+  // preset store was seeded, so its initial snapshot captured an empty
+  // list. Refresh now so the first render already shows the Default
+  // preset. (DR-8.6 kept this call — the ordering problem it solves is
+  // independent of the retired Tweakpane path.)
   presetCycler.refresh();
 
   root.render(

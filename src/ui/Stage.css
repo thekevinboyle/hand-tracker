@@ -1,12 +1,22 @@
-/* Stage — full-viewport host for <video> + 2 stacked canvases.
+/* Stage — flex host for <video> + 2 stacked canvases.
  * Mirror source-of-truth (D27): the raw <video> is NEVER transformed.
- * CSS scaleX(-1) applies to the display canvases only. */
+ * CSS scaleX(-1) applies to the display canvases only.
+ *
+ * Task DR-8.6: Stage used to be `position: fixed; inset: 0;` so it ate
+ * the whole viewport. Now it lives inside `.app-body` (flex row) between
+ * the Toolbar and Sidebar — `position: relative; flex: 1 1 0` lets it
+ * grow to fill the remaining row width while its absolute-positioned
+ * canvases stay pinned to its own bounding box. The WebGL/overlay
+ * resize observers (Stage.tsx) still drive `canvas.width/height` off
+ * `canvas.getBoundingClientRect()`, so the aspect ratio follows the
+ * flex-sized container. (HIGH-10 verified by phase-3-regression.spec.ts.)
+ */
 
 .stage {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background: var(--color-stage-bg);
 }
