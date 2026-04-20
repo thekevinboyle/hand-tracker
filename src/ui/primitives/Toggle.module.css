@@ -1,0 +1,98 @@
+/*
+ * src/ui/primitives/Toggle.module.css — Toggle primitive styles (Task DR-7.4).
+ *
+ * Square↔circle morph via `::before` pseudo-element (background + border-radius).
+ *   - ON  : filled `--color-toggle-on`, radius 0
+ *   - OFF : filled `--color-toggle-off`, radius 50% (full circle at 20×20)
+ *
+ * Hover preview:
+ *   - OFF hover: background darkens to `--color-text-primary` (preview of ON fill)
+ *
+ * Motion:
+ *   - ::before background + radius transition on `--duration-short` / `--ease-default`
+ *   - .icon transform transitions on `--duration-medium` (0.35s) / `--ease-spring`
+ *     with a 0.15s delay so the background animates first, icon snaps into place
+ *
+ * Reduced-motion: tokens.css collapses `--duration-*` → 0s under
+ * `prefers-reduced-motion: reduce`, so all transitions become instant.
+ * No per-component media query needed.
+ *
+ * Authority:
+ *   - task-DR-7-4.md § Step 3 (CSS recipe)
+ *   - DISCOVERY.md DR11 (spring bezier + 0.15s delay on icon)
+ *   - `design-tokens-dark-palette` skill — token names
+ */
+
+.root {
+  position: relative;
+  z-index: 0;
+  width: var(--space-20);
+  height: var(--space-20);
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Icon inherits this color via stroke="currentColor". Against the bright
+   * --color-toggle-on background, --color-bg provides contrast; against the
+   * darker OFF background, the icon is intentionally subtle. */
+  color: var(--color-bg);
+  /* Isolate stacking context so ::before's z-index: -1 does not fall
+   * behind the page background. */
+  isolation: isolate;
+}
+
+.root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transition:
+    background-color var(--duration-short) var(--ease-default),
+    border-radius var(--duration-short) var(--ease-default);
+}
+
+/* ON state: filled square */
+.root[data-checked='true']::before {
+  background-color: var(--color-toggle-on);
+  border-radius: var(--radius-0);
+}
+
+/* OFF state: filled circle */
+.root[data-checked='false']::before {
+  background-color: var(--color-toggle-off);
+  border-radius: var(--radius-circle);
+}
+
+/* OFF hover: preview of ON fill color */
+.root[data-checked='false']:hover::before {
+  background-color: var(--color-text-primary);
+}
+
+.root:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.root[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.icon {
+  width: var(--space-10);
+  height: var(--space-10);
+  transform-origin: center;
+  transform: rotate(0deg);
+  /* Spring bezier on 0.35s with a 0.15s delay — icon snaps AFTER the
+   * background/radius morph has begun. The y2=1.38 overshoot in
+   * --ease-spring is intentional (gives the "snap"). */
+  transition: transform var(--duration-medium) var(--ease-spring) 0.15s;
+}
+
+.root[data-checked='false'] .icon {
+  transform: rotate(-90deg);
+}

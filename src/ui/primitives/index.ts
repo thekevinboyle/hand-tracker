@@ -10,3 +10,5 @@ export type { SegmentedOption, SegmentedProps } from './Segmented';
 export { Segmented } from './Segmented';
 export type { RangeSliderProps, SliderProps } from './Slider';
 export { fromProportion, RangeSlider, Slider, toProportion } from './Slider';
+export type { ToggleProps } from './Toggle';
+export { Toggle } from './Toggle';
