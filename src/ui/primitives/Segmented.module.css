@@ -1,0 +1,103 @@
+/*
+ * src/ui/primitives/Segmented.module.css — Segmented primitive styles
+ * (Task DR-7.2).
+ *
+ * Typography-only segmented control — no pill track, no background.
+ * Selected state = color change + font-weight 500 -> 600. The "/" separator
+ * is rendered via `input::before` on every option except the first; the
+ * first-child exclusion keeps the visual layout clean without a runtime
+ * branch.
+ *
+ * Reduced-motion: tokens.css collapses `--duration-short` -> 0s under
+ * `prefers-reduced-motion: reduce`, so the color transition window shrinks
+ * to zero automatically — no per-component media query needed.
+ *
+ * Authority:
+ *   - `custom-param-components` skill § 3.2 (Segmented contract).
+ *   - pixelcrash research § Components > 4. Segmented Controls (the
+ *     `::before { content: '/' }` + first-child-suppressor pattern).
+ */
+
+.root {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);
+  font-family: var(--font-family);
+  letter-spacing: var(--letter-spacing-body);
+  user-select: none;
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Visually hide the radio input but keep it in layout so `::before`
+ * anchors correctly. Pixelcrash does the same — the visible indicator is
+ * the sibling <span>.label color + weight swap. Do NOT `display: none`
+ * here — the pseudo-element positioning would collapse. */
+.input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  position: relative;
+}
+
+.label {
+  color: var(--color-segmented-unselected);
+  font-weight: var(--font-weight-medium);
+  transition: color var(--duration-short) var(--ease-default);
+}
+
+.item:hover .label {
+  color: var(--color-segmented-selected);
+}
+
+.item:has(.input:checked) .label {
+  color: var(--color-segmented-selected);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* "/" separator rendered before every input. Position: absolute against
+ * the parent `.item` (which is position: relative). The negative-left
+ * offset places the glyph inside the flex gap between items. */
+.input::before {
+  content: '/';
+  position: absolute;
+  left: calc(-1 * var(--space-12));
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-segmented-unselected);
+  font-weight: var(--font-weight-medium);
+  pointer-events: none;
+}
+
+/* Suppress the separator before the first option's input. */
+.item:first-child .input::before {
+  content: none;
+}
+
+/* Focus-visible ring: sibling-selector onto the label so the outline
+ * wraps the visible text rather than the zero-size input. */
+.input:focus-visible + .label {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Disabled state — opacity + cursor override. */
+.root[data-disabled='true'] .label {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.root[data-disabled='true'] .item {
+  cursor: default;
+}
