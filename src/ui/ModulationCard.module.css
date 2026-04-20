@@ -1,0 +1,39 @@
+/*
+ * src/ui/ModulationCard.module.css — modulation card body (Task DR-8.3).
+ *
+ * The card itself uses `<LayerCard>` for its surface + header + divider +
+ * collapsible chevron. These styles target only the body contents — the
+ * count pill in the header action slot, the route list, and the add-route
+ * footer.
+ *
+ * Token-only.
+ */
+
+.count {
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-08) 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-s);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: var(--space-08);
+}

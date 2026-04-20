@@ -21,7 +21,9 @@ import { useEffect, useRef } from 'react';
 import type { Pane } from 'tweakpane';
 import { buildPaneFromManifest } from '../engine/buildPaneFromManifest';
 import type { EffectManifest } from '../engine/manifest';
-import { buildModulationPage } from './ModulationPanel';
+// Task DR-8.3: modulation UI moved to `<ModulationCard>` (React); the
+// imperative `buildModulationPage` Tweakpane builder was deleted. Panel.tsx
+// itself is scheduled for full retirement in DR-8.6.
 import { PresetActions } from './PresetActions';
 
 export type PanelProps = {
@@ -47,13 +49,10 @@ export function Panel({ manifest, paneRef: externalPaneRef }: PanelProps): JSX.E
     const { pane, dispose } = buildPaneFromManifest(manifest, container, [EssentialsPlugin]);
     internalPaneRef.current = pane;
     if (externalPaneRef) externalPaneRef.current = pane;
-    // Task 4.2: attach the Modulation section after the effect-params tree.
-    // Dispose order matters — tear down the modulation subscriber + folders
-    // BEFORE the pane itself so dispose() doesn't fire on an already-torn
-    // container.
-    const disposeModulation = buildModulationPage(pane);
+    // Task DR-8.3: modulation is no longer Tweakpane-owned — the React
+    // `<ModulationCard>` subscribes to `modulationStore` directly. Panel.tsx
+    // now only hosts effect-params until DR-8.6 retires it entirely.
     return () => {
-      disposeModulation();
       dispose();
       internalPaneRef.current = null;
       if (externalPaneRef) externalPaneRef.current = null;

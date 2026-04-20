@@ -11,6 +11,7 @@ import { uploadVideoFrame } from './engine/renderer';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
+import { ModulationCard } from './ui/ModulationCard';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { PresetBar } from './ui/PresetBar';
@@ -154,7 +155,10 @@ export function App() {
               stays mounted until DR-8.6 retires it — its testids have been
               renamed (`tweakpane-panel-root` / `tweakpane-params-panel`)
               so the new chrome owns the canonical names. */}
-          <Sidebar />
+          {/* Task DR-8.3: ModulationCard mounts below LAYER 1 via Sidebar's
+              modulationSlot prop. Subscribes to modulationStore via
+              useSyncExternalStore; retires the Tweakpane folder-per-route UI. */}
+          <Sidebar modulationSlot={<ModulationCard />} />
           <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
           <PresetBar paneRef={paneRef} />
           {trackerError ? (

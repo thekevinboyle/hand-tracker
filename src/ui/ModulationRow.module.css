@@ -1,0 +1,79 @@
+/*
+ * src/ui/ModulationRow.module.css — per-route layout (Task DR-8.3).
+ *
+ * Compact row that mixes native selects, primitive sliders/toggles, and a
+ * text-button Delete link. The second line (BezierEditor) is an optional
+ * child below the main controls when curve === 'cubicBezier'.
+ *
+ * Token-only; no hardcoded hex or px.
+ */
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-08);
+  padding: var(--space-08) 0;
+  border-bottom: var(--space-01) solid var(--color-divider);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.primary {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-08);
+}
+
+.arrow {
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-s);
+}
+
+.select {
+  min-width: 10rem;
+  padding: var(--space-04) var(--space-06);
+  background: var(--color-button-secondary-bg);
+  color: var(--color-text-primary);
+  border: 0;
+  border-radius: var(--radius-0);
+  font-family: var(--font-family);
+  font-size: var(--font-size-s);
+  letter-spacing: var(--letter-spacing-body);
+  cursor: pointer;
+  transition: background-color var(--duration-short) var(--ease-default);
+}
+
+.select:hover {
+  background: var(--color-button-secondary-bg-hover);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.sliderCell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-06);
+  flex: 1 0 12rem;
+  min-width: 12rem;
+}
+
+.sliderLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  min-width: var(--space-24);
+}
+
+.bezierCell {
+  align-self: flex-start;
+  padding-left: var(--space-24);
+}

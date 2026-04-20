@@ -1,0 +1,72 @@
+/*
+ * src/ui/BezierEditor.module.css — cubic-bezier editor styles (Task DR-8.3).
+ *
+ * Token-only; no hardcoded colors or px. Reduced-motion inherited from
+ * tokens.css — the editor itself has no transitions beyond the handle hover
+ * color which collapses to 0s under `prefers-reduced-motion: reduce`.
+ */
+
+.root {
+  display: inline-block;
+  padding: var(--space-04);
+  background-color: var(--color-panel);
+  border: var(--space-01) solid var(--color-divider);
+  border-radius: var(--radius-0);
+}
+
+.root[data-disabled='true'] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.svg {
+  display: block;
+  width: 12rem;
+  height: 8rem;
+  touch-action: none;
+}
+
+.frame {
+  stroke: var(--color-divider);
+  stroke-width: 1;
+}
+
+.diagonal {
+  stroke: var(--color-divider);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+
+.guide {
+  stroke: var(--color-text-muted);
+  stroke-width: 0.75;
+  stroke-dasharray: 1 2;
+}
+
+.curve {
+  stroke: var(--color-slider-active);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.handle {
+  fill: var(--color-slider-handle);
+  stroke: var(--color-panel);
+  stroke-width: 1;
+  cursor: grab;
+  transition: fill var(--duration-short) var(--ease-default);
+}
+
+.handle:hover {
+  fill: var(--color-slider-hover);
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
