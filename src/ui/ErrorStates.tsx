@@ -19,7 +19,7 @@ export function ErrorStates({ state, onRetry }: Props) {
   const copy = errorCopy[state];
   return (
     <div
-      className="card"
+      className="card card-panel"
       role="alert"
       aria-live="polite"
       aria-labelledby="err-title"
@@ -28,6 +28,7 @@ export function ErrorStates({ state, onRetry }: Props) {
       <h2 id="err-title" className="card-title">
         {copy.title}
       </h2>
+      <hr className="card-divider" />
       <p className="card-body">{copy.body}</p>
       {copy.retryLabel && (
         <button ref={btnRef} className="card-retry" type="button" onClick={onRetry}>

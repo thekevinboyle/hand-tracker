@@ -1,57 +1,125 @@
+/*
+ * src/ui/cards.css — Camera-permission cards (Task DR-8.4).
+ *
+ * Shared visual skeleton for PrePromptCard + ErrorStates. The `.card` root
+ * is a fullscreen flex container that centers a panel-styled body. Per
+ * synergy-fix HIGH-07 the panel styling is applied to the SAME `.card`
+ * element via the co-class `.card-panel` — no new wrapper <div> is
+ * introduced, so every existing `[data-testid="error-state-card-X"]`
+ * locator continues to resolve to the outer element.
+ *
+ * Authority:
+ *   - DISCOVERY.md DR5  — dark palette (#0A0A0B bg, #151515 panel, #1F1F1F divider)
+ *   - DISCOVERY.md DR7  — JetBrains Mono inherited from :root via --font-family
+ *   - DISCOVERY.md DR11 — square→pill hover animation on the retry button
+ *   - DISCOVERY.md DR14 — restyle only; keep DOM structure + testids;
+ *     hairline divider between title and body
+ *
+ * Tokens only — no hex literals in this file.
+ */
+
 .card {
   position: fixed;
   inset: 0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  background: var(--color-bg);
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  padding: var(--space-24);
+  z-index: 50;
+}
+
+/*
+ * Co-class applied on the same `.card` element. Because `.card` is already
+ * a flex centering container, adding `.card-panel` switches its layout from
+ * centering a child to BEING the centered panel. We achieve that by
+ * constraining max-width + switching the direction to column + pinning the
+ * panel visually with `--color-panel`. The outer viewport-filling behavior
+ * is preserved via the fixed inset from `.card`; the `.card-panel` rules
+ * just override the visual framing inside that same box.
+ *
+ * Net effect per DR14: the card reads as a centered dark panel inside a
+ * slightly-lighter page background.
+ */
+.card.card-panel {
+  /*
+   * Turn the fullscreen flex container into a column-oriented panel.
+   * max-width caps the inner content; margin:auto centers it; padding
+   * creates the interior rhythm; the flex-direction change lets title,
+   * divider, body, and retry stack vertically.
+   */
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-16);
+  justify-content: center;
   max-width: 480px;
   margin: 0 auto;
   padding: var(--space-32);
-  text-align: left;
+  background: var(--color-panel);
+  gap: var(--space-16);
 }
 
 .card-title {
-  font-size: var(--font-size-l);
-  line-height: 1.2;
   margin: 0;
+  font-size: var(--font-size-l);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
   color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+/*
+ * Hairline divider between title and body (DR14). Structural only — screen
+ * readers ignore <hr> so no aria-hidden needed. Margin collapses into the
+ * parent gap; zeroed here so the gap owns the vertical rhythm.
+ */
+.card-divider {
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+  margin: 0;
+  width: 100%;
 }
 
 .card-body {
-  font-size: var(--font-size-m);
-  line-height: 1.5;
   margin: 0;
+  font-size: var(--font-size-m);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
   color: var(--color-text-muted);
 }
 
+/*
+ * Retry button — pixelcrash secondary style. Square at rest, pill on hover
+ * per DR11. Transition duration inherits the reduced-motion override via
+ * --duration-short (the :root @media block in tokens.css collapses it to
+ * 0s when prefers-reduced-motion: reduce).
+ */
 .card-retry {
+  align-self: flex-start;
   appearance: none;
-  border: 1px solid var(--color-divider);
-  background: var(--color-button-secondary-bg);
+  border: none;
+  padding: var(--space-10) var(--space-24);
+  font: inherit;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  padding: var(--space-10) var(--space-16);
-  font-size: var(--font-size-m);
+  background: var(--color-button-secondary-bg);
   border-radius: var(--radius-0);
   cursor: pointer;
-  transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  transition:
+    border-radius var(--duration-short) var(--ease-default),
+    background-color var(--duration-short) var(--ease-default);
 }
 
 .card-retry:hover {
   background: var(--color-button-secondary-bg-hover);
-  border-color: var(--color-text-disabled);
+  border-radius: var(--radius-pill);
 }
 
 .card-retry:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card,
-  .card-retry {
-    animation: none;
-    transition: none;
-  }
 }

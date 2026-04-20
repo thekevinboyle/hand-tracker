@@ -14,7 +14,7 @@ export function PrePromptCard({ onAllow }: Props) {
   const copy = errorCopy.PROMPT;
   return (
     <div
-      className="card"
+      className="card card-panel"
       role="dialog"
       aria-live="polite"
       aria-labelledby="prp-title"
@@ -23,6 +23,7 @@ export function PrePromptCard({ onAllow }: Props) {
       <h2 id="prp-title" className="card-title">
         {copy.title}
       </h2>
+      <hr className="card-divider" />
       <p className="card-body">{copy.body}</p>
       <button ref={btnRef} className="card-retry" type="button" onClick={onAllow}>
         {copy.retryLabel ?? 'Enable Camera'}
