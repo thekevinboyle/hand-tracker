@@ -10,6 +10,7 @@ import { uploadVideoFrame } from './engine/renderer';
 import { startRenderLoop } from './engine/renderLoop';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
+import { Footer } from './ui/Footer';
 import { ModulationCard } from './ui/ModulationCard';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { PresetStrip } from './ui/PresetStrip';
@@ -149,6 +150,12 @@ export function App() {
             />
             <Sidebar presetStripSlot={<PresetStrip />} modulationSlot={<ModulationCard />} />
           </div>
+          {/* Task DR-8.7: Footer renders as row 3 of .app-layout, directly
+              below .app-body. It is scoped to the `state === 'GRANTED'`
+              branch, so every error-state / PROMPT render omits it
+              entirely — matches DR18 "hidden on error/pre-prompt screens"
+              without any conditional `hidden` attribute plumbing. */}
+          <Footer />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error

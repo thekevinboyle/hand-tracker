@@ -1,0 +1,53 @@
+/*
+ * src/ui/Footer.module.css — styles for the bottom credit/version row.
+ *
+ * Token-only: every color, spacing, and type value flows through
+ * src/ui/tokens.css. No raw hex or px literals.
+ *
+ * Layout:
+ *   - footer is a flex row, fixed height (--space-32), no shrink/grow
+ *     (flex: 0 0 auto), sitting as the third row of `.app-layout` below
+ *     `.app-body`.
+ *   - The two label spans hug their content; the spacer between them
+ *     takes the rest of the row (flex: 1 1 auto) and renders its six
+ *     middle-dot glyphs with letter-spacing: 0.3em so the visible dot
+ *     rhythm scales with viewport width (synergy MEDIUM-10).
+ */
+
+.footer {
+  /* Row 3 of .app-layout — a natural flex child, not a fixed-position
+   * overlay. Height comes from the padded line-height rather than an
+   * explicit `height:` so the text never clips on smaller vw. */
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-08) var(--space-24);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+}
+
+.label {
+  /* Hug content — the two labels are the fixed ends of the row. */
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.spacer {
+  /* MEDIUM-10 — the six middle-dot characters are not a dot-COUNT contract.
+   * The spacer stretches to fill remaining row width; letter-spacing keeps
+   * the dots rhythmic rather than bunched. overflow: hidden hides any
+   * glyphs that would otherwise wrap at tight viewport widths. */
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-align: center;
+  letter-spacing: 0.3em;
+  white-space: nowrap;
+}
