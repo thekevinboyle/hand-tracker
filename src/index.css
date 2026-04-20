@@ -2,7 +2,10 @@
 
 :root {
   color-scheme: dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* DR-6.2 — resolve via --font-family so JetBrains Mono (registered above
+   * this block in tokens.css) becomes the site-wide default. DR-6.3 will
+   * layer in body font-weight / letter-spacing / fluid root on top. */
+  font-family: var(--font-family);
   background: var(--color-bg);
   color: var(--color-text-primary);
 }

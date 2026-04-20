@@ -1,5 +1,5 @@
 /*
- * src/ui/tokens.css — Design tokens (Task DR-6.1).
+ * src/ui/tokens.css — Design tokens (Task DR-6.1 + DR-6.2).
  *
  * Single source of truth for every color, spacing, type, radius, and motion
  * value in the Hand Tracker FX chrome. Consumers reference tokens via
@@ -15,8 +15,38 @@
  * edits in the other in the same commit.
  *
  * Loading order: src/index.css imports this file as its first non-comment
- * line so `:root { --… }` is defined before any `var(--…)` consumer.
+ * line so `:root { --… }` is defined before any `var(--…)` consumer. The
+ * three @font-face rules below are declared BEFORE `:root` so the font
+ * files referenced by --font-family are registered early in the cascade.
  */
+
+/* ──────────────────────────────────────────────────────────────
+ * JetBrains Mono — self-hosted subsets (Task DR-6.2).
+ * See public/fonts/README.md + jetbrains-mono-self-hosting skill.
+ * ────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Regular-subset.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Medium-subset.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-SemiBold-subset.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   /* ──────────────────────────────────────────────────────────────
@@ -79,9 +109,9 @@
 
   /* ──────────────────────────────────────────────────────────────
    * Type — family + fluid root + scale
-   *   DR-6.2 will add @font-face rules above this block; the
-   *   fallback chain keeps the string stable so DR-6.2 is a
-   *   non-breaking append.
+   *   @font-face rules for the three JetBrains Mono weights are
+   *   declared above this block (DR-6.2). The fallback chain keeps
+   *   the text readable during the font-display: swap window.
    * ────────────────────────────────────────────────────────────── */
   --font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
   --font-size-root: clamp(13px, 0.9vw, 16px);

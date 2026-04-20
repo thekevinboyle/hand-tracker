@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 // Mirror of vercel.json `headers` — D32 requires dev-server + preview to match
@@ -13,8 +14,32 @@ const SECURITY_HEADERS = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
 } as const;
 
+// DR-6.2 — Mirror vercel.json's `/fonts/(.*)` Cache-Control header on the
+// dev + preview servers so the L4 Playwright assertion (that font responses
+// carry `public, max-age=31536000, immutable`) passes locally and matches
+// production byte-for-byte. Keeps D32 header-parity invariant.
+const fontsCacheControlPlugin = (): Plugin => ({
+  name: 'hand-tracker-fonts-cache-control',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (req.url?.startsWith('/fonts/')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+      next();
+    });
+  },
+  configurePreviewServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (req.url?.startsWith('/fonts/')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+      next();
+    });
+  },
+});
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), fontsCacheControlPlugin()],
   server: {
     port: 5173,
     headers: SECURITY_HEADERS,
