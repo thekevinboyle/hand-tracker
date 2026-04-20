@@ -217,8 +217,14 @@ export const Stage = forwardRef<StageHandle, StageProps>(function Stage(
         texture: textureRef.current,
         resizeObserver: observer,
         detachCtxLoss,
-        // Release the GPU slot so a remount can allocate a fresh one.
-        forceLoseContext: true,
+        // Do NOT force-lose the context on unmount. Under React StrictMode
+        // dev double-mount, the same canvas element is reused by the second
+        // mount — forcing loseContext() here hands the second mount a dead
+        // WebGL2 context, and ogl's Renderer constructor then silently
+        // produces a Renderer whose setSize() cannot push dimensions through
+        // (canvas.width stays at the HTML 300 default). The browser GCs the
+        // context on its own when the canvas truly detaches.
+        forceLoseContext: false,
       });
       setVideoTexture(null);
       setRenderer(null);

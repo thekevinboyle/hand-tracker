@@ -19,6 +19,23 @@ TouchDesigner-style webcam hand-tracking video effects, running entirely in the 
 
 DISCOVERY.md overrides everything. If a research file, skill, task file, or this document contradicts DISCOVERY.md, follow DISCOVERY.md. If still unsure, ask the human.
 
+## Design Rework (pixelcrash-inspired — started 2026-04-20)
+
+A chrome-only visual rework of the app UI, ran through `/m2c1`. Engine + MediaPipe + WebGL shader + modulation + presets + record pipeline all locked; only `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, and CSS change. Tweakpane is retired; replaced with hand-built React primitives bound directly to `paramStore`.
+
+| What | Where |
+|------|-------|
+| **Rework authority** | `.claude/orchestration-design-rework/DISCOVERY.md` — 19 numbered decisions (DR1–DR19); overrides parent DISCOVERY on chrome topics only |
+| **Rework plan** | `.claude/orchestration-design-rework/PHASES.md` — 24 tasks across Phases DR-6/DR-7/DR-8/DR-9 |
+| **Rework task files** | `.claude/orchestration-design-rework/tasks/phase-DR-{6,7,8,9}/task-DR-N-M.md` |
+| **Rework orchestrator** | `.claude/orchestration-design-rework/START.md` |
+| **Pixelcrash reference** | `.claude/orchestration-design-rework/reference-assets/pixelcrash-reference.png` — stylistic inspiration (NOT the visual-fidelity diff target) |
+| **Visual-fidelity target** | `reports/DR-8-regression/design-rework-reference.png` — captured after DR-8.R lands, used by DR-9.3 visual gate |
+
+New design-rework skills: `design-tokens-dark-palette`, `custom-param-components`, `jetbrains-mono-self-hosting`. Parent `tweakpane-params-presets` skill remains as reference-only during retirement.
+
+Parent-project tasks 5.3–5.R are paused; they resume as DR-9.1–DR-9.R on top of the new chrome.
+
 ## Tech Stack
 
 | Layer | Technology |

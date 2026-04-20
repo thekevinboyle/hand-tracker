@@ -369,10 +369,17 @@ function create(gl: WebGL2RenderingContext): EffectInstance {
       // Phase 4) captures it, then grid + landmark blobs on top. When mirror
       // mode is on, flip the drawImage call — CSS scaleX(-1) on the display
       // canvases does NOT affect the overlay's pixel buffer.
+      //
+      // Draw into the overlay's FULL backing store — viewport × DPR — not
+      // videoSize. videoSize (e.g. 640×480) is the source resolution for
+      // MediaPipe inference and shader tiling, but the overlay canvas fills
+      // the entire stage (CSS 100% / backing = bounding × DPR), so using
+      // video dimensions here would paint only a tiny top-left rectangle.
       const ctx2d = frameCtx.ctx2d;
       if (!ctx2d) return;
 
-      const { w, h } = frameCtx.videoSize;
+      const w = ctx2d.canvas.width;
+      const h = ctx2d.canvas.height;
       ctx2d.clearRect(0, 0, w, h);
 
       const mirror = snap.input.mirrorMode === true;
