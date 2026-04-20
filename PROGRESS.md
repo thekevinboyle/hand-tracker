@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-6 (design rework) — DR-6.1 + DR-6.2 + DR-6.3 done; DR-6.R next; Phase 5 paused after 5.2 and resumes as DR-9
+**Current Phase**: DR-6 (design rework) — DR-6.{1,2,3,R} all done; Phase DR-7 primitives next; Phase 5 paused after 5.2 and resumes as DR-9
 **Last updated**: 2026-04-20
 **Live URL**: https://hand-tracker-jade.vercel.app
 
@@ -17,7 +17,7 @@
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | done | 7 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | paused | 2 | 6 | 5.1 (SW) + 5.2 (Vercel) done. 5.3/5.4/5.5/5.R moved to DR-9.1/.2/.3/.R on top of reworked chrome. |
-| DR-6: Rework foundation | pending | 0 | 4 | Design tokens + JetBrains Mono + base reset + regression |
+| DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
 | DR-7: Component primitives | pending | 0 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + showcase regression |
 | DR-8: Chrome integration | pending | 0 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + retire Tweakpane + footer + regression (captures design-rework-reference.png) |
 | DR-9: Parent Phase-5 resume | pending | 0 | 4 | CI + 8 error states + visual-fidelity gate + v0.1.0 final cut |
@@ -91,7 +91,7 @@
 | DR-6.1 | Design tokens (CSS custom properties + TS mirror) | done | task/DR-6-1-design-tokens | 2026-04-20 | All 4 levels green in 1 Ralph iteration; `src/ui/tokens.css` + `src/ui/tokens.ts` (57 tokens: 21 color + 13 space + 11 type + 3 radius + 6 motion, plus prefers-reduced-motion override) with `cssVar()` typed helper + `satisfies Tokens`; `src/index.css` / `src/ui/Stage.css` / `src/ui/cards.css` fully token-migrated, zero hardcoded hex outside tokens.css; `@types/node` added to `tsconfig.app.json#types` so `src/ui/tokens.test.ts` can read tokens.css via `node:fs` under the `pnpm build` tsc pass. 56 new unit tests (386/386 total); 3 new E2E specs (50/50 E2E total — full Phase 1-4 regression pass in 3m 36s). E2E color assertions use a DOM-probe to resolve `var(--…)` to canonical `rgb(r, g, b)` so LightningCSS hex-shortening (`#333333` → `#333`) doesn't break the tests. |
 | DR-6.2 | Self-host JetBrains Mono (subset woff2 × 3 + @font-face + preload) | done | task/DR-6-2-self-host-jetbrains-mono | 2026-04-20 | All 4 levels green in 1 Ralph iteration; `public/fonts/` ships 3 subset woff2 files (12 KB each, total ~37 KB) + `LICENSE.txt` (OFL-1.1 verbatim) + `README.md`. Subset via `pyftsubset` (installed via `pipx install 'fonttools[woff]'`) — ranges Basic Latin + Latin-1 + Latin Extended-A + General Punctuation + Currency + arrows + geometric shapes, ligatures stripped. `src/ui/tokens.css` prepends three `@font-face` blocks (400/500/600, `font-display: swap`) before `:root`. `index.html` adds DR19 signature comment + `<link rel="preload" as="font" type="font/woff2" crossorigin>` for the Medium weight. `vercel.json` adds a second headers entry for `/fonts/(.*)` with `Cache-Control: public, max-age=31536000, immutable` (COOP/COEP inherit additively from the global `/(.*)` entry — no duplication). `vite.config.ts` gains a tiny `fontsCacheControlPlugin` so preview mirrors Vercel's Cache-Control for L4 parity (D32). `src/index.css`'s `:root` font-family switched from `system-ui` to `var(--font-family)` so body computes to JetBrains Mono (DR-6.3 will layer weight + letter-spacing + fluid root on top). 8 new unit tests in `src/ui/fontLoading.test.ts` (402/402 total); 3 new E2E in `tests/e2e/task-DR-6-2.spec.ts` (53/53 full-suite pass in 3m 41s). **Finding:** `document.fonts.ready` only settles pending loads — it does NOT imply the Medium weight is "loaded" unless something actually uses 500 weight. Forced `document.fonts.load('500 1em "JetBrains Mono"')` explicitly in the spec to prove the subset woff2 resolves. |
 | DR-6.3 | Base reset + body baseline | done | task/DR-6-3-base-reset-body-baseline | 2026-04-20 | All 4 levels green in 1 Ralph iteration; `src/index.css` refactored to token-driven body baseline — `:root` declares `font-family / font-size / font-weight / line-height / letter-spacing / color / background / -webkit-font-smoothing / text-rendering` and `color-scheme: dark`; minimal reset (`*, *::before, *::after { box-sizing: border-box }`); `html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden }` preserved from DR-6.1; body inherits each typography property explicitly (no `font:` shorthand — some browsers reset line-height on the shorthand). `.app-shell` padding removed — deferred to DR-8.6 per synergy-fix MEDIUM-05. `tests/e2e/task-DR-6-3.spec.ts` — 4 specs (baseline computed styles at default viewport + 1440×900 clamps to 13px floor + 1920×1080 clamps to 16px ceiling + Medium weight actually loaded). 394 unit tests pass (+0 new); 57/57 E2E aggregate pass in 3m 36s. **Finding:** at default Playwright viewport (1280×720), `0.9vw = 11.52px` → clamp floor = 13px, which is exactly what gets computed — the DR7 clamp function works as specified. Preserved uncommitted edits on `manifest.ts`, `Stage.tsx`, `CLAUDE.md`. |
-| DR-6.R | Phase DR-6 regression (tokens + font live; current UI survives) | pending | | | |
+| DR-6.R | Phase DR-6 regression (tokens + font live; current UI survives) | done | task/DR-6-R-phase-regression | 2026-04-20 | All 4 levels green in 1 Ralph iteration against `pnpm build --mode test && pnpm preview`; 63/63 E2E pass (3.8m) — includes 45 Phase 1-4 `Task N.M:` specs + 1 phase-4 end-to-end journey + 2 Phase 5.1 SW specs + 10 DR-6.{1,2,3} foundation specs + 6 DR-6.R invariants (5 assertions + 1 walkthrough). `tests/e2e/DR-6-regression.spec.ts` — 5 invariant tests (token/font/baseline compose; Medium woff2 long-cache; PrePromptCard in new palette + JetBrains Mono; Tweakpane survives grant; DR19 signature in HTML) + 1 walkthrough test capturing 4 PNGs. 394/394 unit tests (27 files) unchanged — foundation files inspect-only. **Findings:** (1) Playwright config auto-grants camera, so PrePromptCard test had to stall `getUserMedia` via `addInitScript` to hold state in PROMPT. (2) LightningCSS preserves all 3 `@font-face` blocks + individual woff2 refs in the minified bundle. (3) Playwright MCP unavailable in agent env; walkthrough captured via in-spec `page.screenshot()` following the Task 4.R pattern — same evidence form, different capture mechanism. (4) Live-Vercel lane deferred to DR-9.R; Task 5.2 already validated the live header path. Report: `reports/DR-6-regression.md`. |
 
 ### Phase DR-7: Component Primitives (replaces Tweakpane)
 
@@ -190,8 +190,23 @@
 - Decision: SHIP — Phase 5 greenlit
 - Report: `reports/phase-4-regression.md`
 
+### Phase DR-6 Regression
+- Status: complete
+- Date: 2026-04-20
+- Ralph iterations: 1
+- L1: `pnpm biome check src/ tests/` 97 files / 23 ms + `pnpm tsc --noEmit` 0 errors — green
+- L2: 394 / 394 unit tests across 27 files (1.76 s) — green (unchanged from DR-6.3; foundation files inspect-only)
+- L3: `pnpm build --mode test` 108 ms (124 modules, 7 chunks); dist/fonts/ ships 3 woff2 + LICENSE + README; dist/assets/*.css contains 3 `@font-face` blocks + references all 3 weights; dist/index.html retains DR19 signature + Medium preload
+- L4: 63 / 63 E2E specs pass in a single `pnpm test:e2e` run (3.8 m) — 45 Phase 1–4 `Task N.M:` specs + 2 Phase 5.1 SW specs + 10 DR-6.{1,2,3} foundation specs + 6 DR-6.R specs. Full phase 1–4 aggregate (`--grep "Task [1-4]\."`) → 45 / 45 green (3.5 m).
+- New coverage: `tests/e2e/DR-6-regression.spec.ts` (5 invariants + 1 walkthrough). 4 PNG artifacts at `reports/DR-6-regression/step-0{1-4}-*.png` (gitignored).
+- Screenshots captured via in-spec `page.screenshot()` (Task 4.R pattern) because Playwright MCP is not available in the agent environment — identical evidence form.
+- Live-Vercel preview deploy deferred to DR-9.R per task spawn brief; Task 5.2 already validated the live header lane on the `main` alias.
+- Deviations: none that weaken the gate. Task file's live-preview `curl -sI` transcripts + `PLAYWRIGHT_BASE_URL=<preview> pnpm test:e2e` rows moved to DR-9.R coverage.
+- Decision: SHIP — Phase DR-7 greenlit
+- Report: `reports/DR-6-regression.md`
+
 ### Phase 5 Final
-- Status: pending
+- Status: pending (resumes as DR-9)
 
 ---
 
