@@ -1,0 +1,52 @@
+/*
+ * src/ui/LayerRow.module.css — LayerRow styles (Task DR-8.2).
+ *
+ * Row-level helper used inside a LayerSection body: label on the left, control
+ * on the right. Section-level styling (heading, divider, padding) lives with
+ * the DR-7.6 LayerSection primitive (src/ui/primitives/LayerCard.module.css).
+ *
+ * Visual recipe:
+ *   - Flex row, space-between, vertical-centered.
+ *   - Horizontal gap --space-08 between label and control (min).
+ *   - Vertical padding --space-04 so consecutive rows have breathing room.
+ *   - Label in --color-text-muted, single-line.
+ *   - Control right-aligned, min-width caps it so long-label rows don't
+ *     squash the control too tightly.
+ *
+ * Tokens-only — no hardcoded hex or px.
+ *
+ * Authority:
+ *   - task-DR-8-2.md § "Row layout (per control)".
+ *   - `custom-param-components` skill — Sidebar / LayerRow pattern.
+ *   - `design-tokens-dark-palette` skill — token names.
+ */
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-08);
+  padding-block: var(--space-04);
+  min-height: var(--space-24);
+}
+
+.rowLabel {
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowControl {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+  align-items: center;
+}

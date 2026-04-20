@@ -14,6 +14,7 @@ import { ErrorStates } from './ui/ErrorStates';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { PresetBar } from './ui/PresetBar';
+import { Sidebar } from './ui/Sidebar';
 import { Stage, type StageHandle } from './ui/Stage';
 import { Toolbar } from './ui/Toolbar';
 
@@ -147,6 +148,13 @@ export function App() {
             onVideoReady={(el) => setVideoEl(el)}
             onTextureRecreated={handleTextureRecreated}
           />
+          {/* Task DR-8.2: new right-column Sidebar hosting LayerCard1
+              (all 14 manifest params). Owns the `panel-root` +
+              `params-panel` testids going forward. The Tweakpane `<Panel />`
+              stays mounted until DR-8.6 retires it — its testids have been
+              renamed (`tweakpane-panel-root` / `tweakpane-params-panel`)
+              so the new chrome owns the canonical names. */}
+          <Sidebar />
           <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
           <PresetBar paneRef={paneRef} />
           {trackerError ? (

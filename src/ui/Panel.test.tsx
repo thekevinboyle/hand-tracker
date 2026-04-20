@@ -34,9 +34,9 @@ describe('<Panel />', () => {
     expect(() => render(<Panel manifest={makeManifest([])} />)).not.toThrow();
   });
 
-  it('renders a container with data-testid="params-panel"', () => {
+  it('renders a container with data-testid="tweakpane-params-panel"', () => {
     render(<Panel manifest={makeManifest([])} />);
-    expect(screen.getByTestId('params-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('tweakpane-params-panel')).toBeInTheDocument();
   });
 
   it('builds the Tweakpane into the container (has children after mount)', () => {
@@ -55,7 +55,7 @@ describe('<Panel />', () => {
         ])}
       />,
     );
-    const container = screen.getByTestId('params-panel');
+    const container = screen.getByTestId('tweakpane-params-panel');
     expect(container.children.length).toBeGreaterThan(0);
   });
 
@@ -75,7 +75,7 @@ describe('<Panel />', () => {
         ])}
       />,
     );
-    const container = screen.getByTestId('params-panel');
+    const container = screen.getByTestId('tweakpane-params-panel');
     expect(container.children.length).toBeGreaterThan(0);
     unmount();
     // After unmount the whole tree is gone — we assert by re-querying the
@@ -104,7 +104,7 @@ describe('<Panel />', () => {
     // Tweakpane's root-container-view is `.tp-rotv`. Under StrictMode,
     // useEffect runs, cleans up, then runs again — if our cleanup didn't
     // dispose + clear the host, we'd see two `.tp-rotv` nodes.
-    const panel = screen.getByTestId('params-panel');
+    const panel = screen.getByTestId('tweakpane-params-panel');
     expect(panel.querySelectorAll('.tp-rotv').length).toBe(1);
   });
 });

@@ -61,9 +61,14 @@ export function Panel({ manifest, paneRef: externalPaneRef }: PanelProps): JSX.E
   }, [manifest, externalPaneRef]);
 
   return (
-    <div className="panel-container" data-testid="panel-root">
+    // Task DR-8.2: the `panel-root` + `params-panel` testids migrated to
+    // the new `<Sidebar>` + `<LayerCard1>` chrome. Panel's internal testids
+    // are now `tweakpane-panel-root` + `tweakpane-params-panel` so Panel.test
+    // can still target the Tweakpane host in isolation until DR-8.6 retires
+    // this component entirely.
+    <div className="panel-container" data-testid="tweakpane-panel-root">
       <PresetActions paneRef={internalPaneRef} />
-      <div ref={containerRef} data-testid="params-panel" />
+      <div ref={containerRef} data-testid="tweakpane-params-panel" />
     </div>
   );
 }

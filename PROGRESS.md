@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-8 (chrome integration) — 1/8 (DR-8.1 Toolbar + CellSizePicker SHIP); DR-8.2 Sidebar + LayerCard1 next; Phase 5 paused after 5.2 and resumes as DR-9
+**Current Phase**: DR-8 (chrome integration) — 2/8 (DR-8.1 Toolbar + CellSizePicker SHIP; DR-8.2 Sidebar + LayerCard1 SHIP); DR-8.3 ModulationCard next; Phase 5 paused after 5.2 and resumes as DR-9
 **Last updated**: 2026-04-19
 **Live URL**: https://hand-tracker-jade.vercel.app
 
@@ -19,9 +19,9 @@
 | 5: Deploy + E2E | paused | 2 | 6 | 5.1 (SW) + 5.2 (Vercel) done. 5.3/5.4/5.5/5.R moved to DR-9.1/.2/.3/.R on top of reworked chrome. |
 | DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
 | DR-7: Component primitives | done | 8 / 8 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + DR-7.R showcase regression — SHIP |
-| DR-8: Chrome integration | in-progress | 1 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + retire Tweakpane + footer + regression (captures design-rework-reference.png) |
+| DR-8: Chrome integration | in-progress | 2 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + retire Tweakpane + footer + regression (captures design-rework-reference.png) |
 | DR-9: Parent Phase-5 resume | pending | 0 | 4 | CI + 8 error states + visual-fidelity gate + v0.1.0 final cut |
-| **Total** | | **37** | **56** | parent 32 + rework 24 |
+| **Total** | | **38** | **56** | parent 32 + rework 24 |
 
 ---
 
@@ -122,7 +122,7 @@
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
 | DR-8.1 | Toolbar + CellSizePicker (5 buckets → mosaic.tileSize) | done | task/DR-8-1-toolbar-cellsize-picker | 2026-04-19 | All 4 levels green in 1 Ralph iteration; `src/ui/Toolbar.tsx` + `Toolbar.module.css` (fixed top, flex-row wordmark/center/trailing, tokens only, `pointer-events: none` on outer + `auto` on cells to let PresetActions beneath stay clickable during DR-8.1→DR-8.6 transition); `src/ui/CellSizePicker.tsx` (thin wrapper around `Segmented<number>` bound via `useParam('mosaic.tileSize')` with 5 buckets XS/S/M/L/XL → 4/8/16/32/64; between-bucket values render `value={undefined}` so no radio is selected); `src/ui/RecordButton.tsx` — stripped `position:fixed / top / right / zIndex`, now flows inline inside Toolbar's trailing cell; `src/App.tsx` mounts `<Toolbar getCanvas={…} />` above `<Stage />` and removes the old floating `<RecordButton />`. 12 new unit tests (548/548 total across 35 files, +12 from DR-7.R's 536); 2 new E2E specs (74/74 aggregate, 3.8m). **Finding:** the existing PresetActions bar (`position: fixed; top: 0; zIndex 100`) shares the top band with the new Toolbar; raising Toolbar z-index to 150 hid PresetActions clicks. Fix: `pointer-events: none` on outer `<header>` + `auto` on `.leading / .center > * / .trailing` lets clicks on empty toolbar space (e.g. "Save As" button to the left of the cell-picker) fall through to the still-live PresetActions beneath. DR-8.6 retires Tweakpane + PresetActions entirely and the stacking hack disappears. |
-| DR-8.2 | Sidebar + LayerCard1 (wires all 14 manifest params) | pending | | | |
+| DR-8.2 | Sidebar + LayerCard1 (wires all 14 manifest params) | done | task/DR-8-2-sidebar-layercard1 | 2026-04-19 | All 4 levels green in 1 Ralph iteration; `src/ui/Sidebar.tsx` + `Sidebar.module.css` (fixed right column, 340px wide, top=44px below Toolbar, z-index 140, pointer-events: auto, tokens-only — `panel-root` testid owned here); `src/ui/LayerCard1.tsx` (hardcoded for handTrackingMosaic per DR6 — 14 params across 3 LayerSection groups Grid/Mosaic/Input; imports `LayerCard + LayerSection` from `./primitives/LayerCard` per CRITICAL-05; every `useParam` call uses literal key w/ NO generic per CRITICAL-04; every Slider + ColorPicker passes `ariaLabel` per HIGH-02; `params-panel` testid owned on body div; Randomize button invokes manifest's ButtonParamDef.onClick with paramStore.snapshot); `src/ui/LayerRow.tsx` + `LayerRow.module.css` (net-new label+control row helper, flex space-between, --color-text-muted label, --space-04 padding-block); `src/ui/Panel.tsx` — renamed internal testids to `tweakpane-panel-root` + `tweakpane-params-panel` so the new Sidebar + LayerCard1 own the canonical `panel-root` + `params-panel` names (Tweakpane Panel itself stays mounted until DR-8.6); `src/App.tsx` mounts `<Sidebar />` alongside still-live `<Panel />`. 29 new unit tests (577/577 total across 38 files, +29 from DR-8.1's 548); 7 new E2E specs (81/81 aggregate, 3.9m). **Preflight (HIGH-04):** 0 chained selectors on `panel-root`; 2 references to `params-panel` in DR-6-regression.spec.ts:251 (`.hover()`) + phase-2-regression.spec.ts:152 (Tweakpane `.tp-rotv` asserted separately) — both survive the testid migration because hover works on any visible element and `.tp-rotv` still exists under the Tweakpane Panel mount. Preserved uncommitted edits on `manifest.ts`, `Stage.tsx`, `CLAUDE.md`. |
 | DR-8.3 | ModulationCard + ModulationRow + BezierEditor | pending | | | |
 | DR-8.4 | Restyled error + pre-prompt cards (same 8 testids) | pending | | | |
 | DR-8.5 | PresetStrip (merges PresetBar + PresetActions into sidebar) | pending | | | |
