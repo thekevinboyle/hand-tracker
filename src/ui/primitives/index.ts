@@ -8,3 +8,5 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 export { Button } from './Button';
 export type { SegmentedOption, SegmentedProps } from './Segmented';
 export { Segmented } from './Segmented';
+export type { RangeSliderProps, SliderProps } from './Slider';
+export { fromProportion, RangeSlider, Slider, toProportion } from './Slider';

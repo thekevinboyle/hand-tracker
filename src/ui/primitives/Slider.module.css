@@ -1,0 +1,104 @@
+/*
+ * src/ui/primitives/Slider.module.css — Slider / RangeSlider styles
+ * (Task DR-7.3).
+ *
+ * Structure:
+ *   .root          — 100% × 32px (--space-32) touch-area wrapper, flex-center
+ *   .track         — 100% × 2px (--space-02) hairline background
+ *   .activeRange   — absolutely positioned fill between 0..value (or lo..hi)
+ *   .thumb         — 2px wide × 16px (--space-16) tall vertical line,
+ *                    pointer-events: none (decorative only)
+ *   .nativeInput   — invisible <input type="range"> overlay, owns all
+ *                    pointer + keyboard + a11y behavior. opacity: 0,
+ *                    inset: 0 (sized exactly to the 32×32 touch-area).
+ *
+ * Reduced-motion: tokens.css collapses --duration-short → 0s under
+ * `prefers-reduced-motion: reduce`, so the color transitions below shrink
+ * to zero automatically. No per-component @media block needed.
+ *
+ * Authority:
+ *   - `custom-param-components` skill § 3.3 (Slider contract)
+ *   - pixelcrash research § Components > 6. Range Slider
+ *   - `design-tokens-dark-palette` skill — token names
+ */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: var(--space-32); /* 32px expanded touch-area */
+  display: flex;
+  align-items: center;
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  height: var(--space-02); /* 2px hairline */
+  background-color: var(--color-slider-track);
+  border-radius: var(--radius-0);
+}
+
+.activeRange {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-color: var(--color-slider-active);
+  transition: background-color var(--duration-short) var(--ease-default);
+  pointer-events: none;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--space-02); /* 2px wide vertical line */
+  height: var(--space-16); /* 16px tall */
+  background-color: var(--color-slider-handle);
+  border-radius: var(--radius-0);
+  pointer-events: none;
+  transition: background-color var(--duration-short) var(--ease-default);
+}
+
+/* Hover lightens the active-range + thumb to --color-slider-hover.
+ * Applies on both Slider and RangeSlider. */
+.root:hover .activeRange,
+.root:hover .thumb {
+  background-color: var(--color-slider-hover);
+}
+
+/* Invisible native <input type="range"> overlay — handles pointer drag,
+ * keyboard, and screen-reader semantics. opacity: 0 keeps it invisible
+ * but not display:none (which would break a11y + input events). */
+.nativeInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  /* Clear default Chrome appearance so the overlay does not influence
+   * layout of the decorative thumb underneath. */
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+.nativeInput:disabled {
+  cursor: default;
+}
+
+/* Focus-visible ring on the decorative thumb when the underlying native
+ * input receives keyboard focus. Uses `:has` to hop from the focused input
+ * to its sibling .track .thumb. */
+.root:has(.nativeInput:focus-visible) .thumb {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Disabled state — matches Button / Segmented conventions. */
+.root[data-disabled='true'] {
+  opacity: 0.4;
+  pointer-events: none;
+}
