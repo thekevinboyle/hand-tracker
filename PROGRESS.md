@@ -1,8 +1,8 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-8 (chrome integration) — 8/8 DONE (DR-8.1 Toolbar + CellSizePicker SHIP; DR-8.2 Sidebar + LayerCard1 SHIP; DR-8.3 ModulationCard + ModulationRow + BezierEditor SHIP; DR-8.4 restyled error + pre-prompt cards SHIP; DR-8.5 PresetStrip SHIP; DR-8.6 Tweakpane retired SHIP; DR-8.7 Footer SHIP; **DR-8.R Phase regression + canonical reference captured SHIP**); Phase DR-9 (CI + error-states + visual-fidelity + v0.1.0) cleared to start
-**Last updated**: 2026-04-20 (DR-8.R SHIP)
+**Current Phase**: DR-9 (Parent Phase-5 resume) — 1/4 DONE (DR-9.1 GitHub Actions CI pipeline SHIP); DR-9.2 (8 error-state E2E) next
+**Last updated**: 2026-04-19 (DR-9.1 SHIP)
 **Live URL**: https://hand-tracker-jade.vercel.app
 
 ---
@@ -20,8 +20,8 @@
 | DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
 | DR-7: Component primitives | done | 8 / 8 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + DR-7.R showcase regression — SHIP |
 | DR-8: Chrome integration | done | 8 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + PresetStrip + Tweakpane retired + Footer + DR-8.R regression (design-rework-reference.png committed) — SHIP |
-| DR-9: Parent Phase-5 resume | pending | 0 | 4 | CI + 8 error states + visual-fidelity gate + v0.1.0 final cut |
-| **Total** | | **43** | **56** | parent 32 + rework 24 |
+| DR-9: Parent Phase-5 resume | in-progress | 1 | 4 | DR-9.1 CI SHIP; 8 error states + visual-fidelity gate + v0.1.0 final cut pending |
+| **Total** | | **44** | **56** | parent 32 + rework 24 |
 
 ---
 
@@ -145,7 +145,7 @@
 
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
-| DR-9.1 | CI: GitHub Actions (L1–L4 on PR + push) — resumes parent 5.3 | pending | | | |
+| DR-9.1 | CI: GitHub Actions (L1–L4 on PR + push) — resumes parent 5.3 | done | task/DR-9-1-github-actions-ci | 2026-04-19 | All 4 levels green in 1 Ralph iteration. `.github/workflows/ci.yml` rewritten from legacy stub to DR-9.1 contract (Node 25 quoted-string matrix, pnpm/action-setup@v4 before setup-node, pnpm store + Playwright browser + MediaPipe asset caches, fail-fast, concurrency guard, `pnpm build --mode test` L3, `if: failure()` artifact upload). `.github/workflows/e2e-preview.yml` NEW — `deployment_status` trigger guarded on `state=='success' && target_url != ''`, `PLAYWRIGHT_BASE_URL` env threaded into L4. Both YAMLs validated via `python3 -c "import yaml; yaml.safe_load(…)"` (pyyaml installed in /tmp venv). Local regression: 617/617 unit tests (41 files), 102/102 E2E (4.4 m), L1 biome + tsc clean, L3 `pnpm build --mode test` clean. No src/ changes — meta/infra only. Branch protection toggle + live first-run validation deferred to first PR push (human step). |
 | DR-9.2 | E2E for all 8 camera states (JS-level stubs) — resumes parent 5.4 | pending | | | |
 | DR-9.3 | Visual-fidelity gate against `design-rework-reference.png` — resumes parent 5.5 | pending | | | |
 | DR-9.R | Final cut: v0.1.0 tag + CHANGELOG + archive TD ref — resumes parent 5.R | pending | | | |
