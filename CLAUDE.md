@@ -13,28 +13,30 @@ TouchDesigner-style webcam hand-tracking video effects, running entirely in the 
 | **Orchestrator** | `.claude/orchestration-hand-tracker-fx/START.md` — how to spawn per-task subagents |
 | **Research** | `.claude/orchestration-hand-tracker-fx/research/` — 13 research files |
 | **Reports** | `.claude/orchestration-hand-tracker-fx/reports/` — tool-verification, synergy reviews, phase regressions |
-| **Reference image** | `.claude/orchestration-hand-tracker-fx/reference-assets/touchdesigner-reference.png` — visual fidelity target |
+| **Reference image (historical)** | `.claude/orchestration-hand-tracker-fx/reference-assets/_historical/touchdesigner-reference.png` — pre-rework TouchDesigner mood board (archived by DR-9.R per DR17) |
+| **Visual-fidelity target** | `reports/DR-8-regression/design-rework-reference.png` — 1440×900 canonical reference used by DR-9.3's automated 2% pixel-diff gate |
+| **Release notes** | `CHANGELOG.md` (repo root) — Keep-a-Changelog; v0.1.0 covers Phases 1–5 + DR-6/7/8/9 |
 
 ## Authority Rule
 
 DISCOVERY.md overrides everything. If a research file, skill, task file, or this document contradicts DISCOVERY.md, follow DISCOVERY.md. If still unsure, ask the human.
 
-## Design Rework (pixelcrash-inspired — started 2026-04-20)
+## Design Rework (pixelcrash-inspired — CLOSED 2026-04-20 at v0.1.0)
 
-A chrome-only visual rework of the app UI, ran through `/m2c1`. Engine + MediaPipe + WebGL shader + modulation + presets + record pipeline all locked; only `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, and CSS change. Tweakpane is retired; replaced with hand-built React primitives bound directly to `paramStore`.
+Chrome-only visual rework of the app UI. Engine + MediaPipe + WebGL shader + modulation + presets + record pipeline all untouched; only `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, and CSS changed. Tweakpane retired, replaced with hand-built React primitives bound directly to `paramStore`. Final cut is **v0.1.0** (tag + release notes in `CHANGELOG.md`).
 
 | What | Where |
 |------|-------|
-| **Rework authority** | `.claude/orchestration-design-rework/DISCOVERY.md` — 19 numbered decisions (DR1–DR19); overrides parent DISCOVERY on chrome topics only |
-| **Rework plan** | `.claude/orchestration-design-rework/PHASES.md` — 24 tasks across Phases DR-6/DR-7/DR-8/DR-9 |
+| **Rework authority** | `.claude/orchestration-design-rework/DISCOVERY.md` — 19 numbered decisions (DR1–DR19); overrode parent DISCOVERY on chrome topics only |
+| **Rework plan** | `.claude/orchestration-design-rework/PHASES.md` — 24 tasks across Phases DR-6/DR-7/DR-8/DR-9 (all done) |
 | **Rework task files** | `.claude/orchestration-design-rework/tasks/phase-DR-{6,7,8,9}/task-DR-N-M.md` |
 | **Rework orchestrator** | `.claude/orchestration-design-rework/START.md` |
 | **Pixelcrash reference** | `.claude/orchestration-design-rework/reference-assets/pixelcrash-reference.png` — stylistic inspiration (NOT the visual-fidelity diff target) |
-| **Visual-fidelity target** | `reports/DR-8-regression/design-rework-reference.png` — captured after DR-8.R lands, used by DR-9.3 visual gate |
+| **Visual-fidelity target** | `reports/DR-8-regression/design-rework-reference.png` — captured by DR-8.R, diffed by DR-9.3 (2% tolerance) |
 
-New design-rework skills: `design-tokens-dark-palette`, `custom-param-components`, `jetbrains-mono-self-hosting`. Parent `tweakpane-params-presets` skill remains as reference-only during retirement.
+Design-rework skills: `design-tokens-dark-palette`, `custom-param-components`, `jetbrains-mono-self-hosting`. Parent `tweakpane-params-presets` skill kept for historical reference — Tweakpane is no longer a dependency.
 
-Parent-project tasks 5.3–5.R are paused; they resume as DR-9.1–DR-9.R on top of the new chrome.
+Parent-project tasks 5.3–5.R resumed as DR-9.1–DR-9.R on top of the reworked chrome. All now done; see `CHANGELOG.md` for the full v0.1.0 ledger.
 
 ## Tech Stack
 
@@ -50,7 +52,7 @@ Parent-project tasks 5.3–5.R are paused; they resume as DR-9.1–DR-9.R on top
 | Hand tracking | `@mediapipe/tasks-vision` 0.10.34 HandLandmarker (main-thread, GPU delegate) |
 | WebGL | ogl 1.0 (mosaic fragment shader, full-screen quad) |
 | 2D overlay | Canvas 2D (grid + dotted blobs + labels, pre-composites the WebGL canvas for captureStream) |
-| Params UI | Tweakpane 4.0 + @tweakpane/plugin-essentials |
+| Params UI | Custom React primitives (Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / ModulationRow) + `useParam` bound via `useSyncExternalStore` to `paramStore` |
 | Modulation | bezier-easing 2.1 |
 | Deploy | Vercel w/ COOP `same-origin` + COEP `require-corp` + full CSP |
 | Assets | MediaPipe model (7.5 MB) + 6 wasm files (~52 MB) self-hosted under `public/` |

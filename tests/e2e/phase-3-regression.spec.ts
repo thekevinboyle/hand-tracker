@@ -29,7 +29,7 @@ import { expect, test } from '@playwright/test';
 
 const REPORTS_DIR = 'reports';
 const REFERENCE_PNG = path.resolve(
-  '.claude/orchestration-hand-tracker-fx/reference-assets/touchdesigner-reference.png',
+  '.claude/orchestration-hand-tracker-fx/reference-assets/_historical/touchdesigner-reference.png',
 );
 
 interface EngineHook {
