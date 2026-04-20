@@ -14,8 +14,8 @@ import { ErrorStates } from './ui/ErrorStates';
 import { Panel } from './ui/Panel';
 import { PrePromptCard } from './ui/PrePromptCard';
 import { PresetBar } from './ui/PresetBar';
-import { RecordButton } from './ui/RecordButton';
 import { Stage, type StageHandle } from './ui/Stage';
+import { Toolbar } from './ui/Toolbar';
 
 export function App() {
   const { state, retry, stream } = useCamera();
@@ -133,6 +133,13 @@ export function App() {
       {state !== 'PROMPT' && state !== 'GRANTED' && <ErrorStates state={state} onRetry={retry} />}
       {state === 'GRANTED' && (
         <>
+          {/* Task DR-8.1: Toolbar replaces the old floating RecordButton.
+              Wordmark left + CellSizePicker center + inline Record button
+              right. Task 4.5's overlay-canvas capture semantics are
+              preserved — the getCanvas callback still returns the 2D
+              overlay so captureStream() picks up the pre-composited
+              mosaic. */}
+          <Toolbar getCanvas={() => stageRef.current?.overlayCanvas ?? null} />
           <Stage
             ref={stageRef}
             stream={stream}
@@ -142,10 +149,6 @@ export function App() {
           />
           <Panel manifest={handTrackingMosaicManifest} paneRef={paneRef} />
           <PresetBar paneRef={paneRef} />
-          {/* Task 4.5: Record the 2D overlay — Task 3.4's render() pre-
-              composites the WebGL mosaic into it, so captureStream()
-              on this canvas captures the full effect. */}
-          <RecordButton getCanvas={() => stageRef.current?.overlayCanvas ?? null} />
           {trackerError ? (
             <p data-testid="tracker-error" hidden>
               tracker error

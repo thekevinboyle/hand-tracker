@@ -22,16 +22,14 @@ export type RecordButtonProps = {
 };
 
 const containerStyle: React.CSSProperties = {
-  position: 'fixed',
-  // Sit below the PresetActions bar (which occupies top: 0..~40 with
-  // zIndex 100) but above Tweakpane's default-fixed panel.
-  top: 50,
-  right: 12,
+  // DR-8.1: stripped `position: fixed / top / right / zIndex`. The
+  // RecordButton now lives inline inside `<Toolbar />`'s trailing cell
+  // and flows with the flex layout. The container still stacks any error
+  // caption below the button via `flex-direction: column`.
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-end',
   gap: 4,
-  zIndex: 110,
 };
 const buttonBaseStyle: React.CSSProperties = {
   display: 'inline-flex',

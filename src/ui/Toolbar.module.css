@@ -1,0 +1,108 @@
+/*
+ * src/ui/Toolbar.module.css — Toolbar styles (Task DR-8.1).
+ *
+ * Three-column flex row: wordmark (flex: 0 0 auto, left) + cell-picker
+ * (flex: 1, centered) + record (flex: 0 0 auto, right).
+ *
+ * Height = var(--space-44) (4.4rem) per task file — same header rhythm as
+ * pixelcrash. Padding = 0 var(--space-24) on the row, gap = var(--space-32)
+ * between the three cells.
+ *
+ * Background = var(--color-bg) so the toolbar blends seamlessly into the
+ * page surface; the stage below stays distinct via its own black background.
+ * No bottom border / divider — the spatial gap between toolbar and stage
+ * provides visual separation.
+ *
+ * Tokens-only — zero hardcoded hex or px per task file "Code Quality".
+ *
+ * Reduced-motion: inherited via tokens.css `--duration-*` override. No
+ * per-component @media block.
+ *
+ * Authority:
+ *   - DISCOVERY.md DR12 — near-neutral dark surface.
+ *   - DISCOVERY.md DR13 — wordmark typography (JetBrains Mono 600).
+ *   - `design-tokens-dark-palette` skill — token names.
+ *   - task-DR-8-1.md — height/padding/gap contract.
+ */
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-32);
+  height: var(--space-44);
+  padding: 0 var(--space-24);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+  /* Fixed at the top of the viewport, above the Stage (which is
+   * position: fixed; inset: 0). DR-8.1 ships the Toolbar alongside the
+   * still-live pre-retirement PresetActions bar (z-index 100, same
+   * top band). To keep BOTH layers interactive during the transition
+   * window, the outer <header> uses pointer-events: none (so clicks
+   * on empty toolbar space fall through to PresetActions beneath),
+   * while the three interactive cells (.leading/.center/.trailing)
+   * re-enable pointer-events: auto so the wordmark, cell-picker, and
+   * record button stay clickable at their own pixel regions. DR-8.6
+   * retires Tweakpane/PresetActions entirely and the stacking hack
+   * disappears. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  pointer-events: none;
+}
+
+.leading {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-08);
+  /* Re-enable pointer capture within the interactive cell — the outer
+   * .toolbar uses pointer-events: none to let PresetActions beneath
+   * stay clickable during the DR-8.1→DR-8.6 transition window. */
+  pointer-events: auto;
+}
+
+/* Flat monochrome 20x20 glyph mark — paired with the wordmark per DR13.
+ * NOT the gradient favicon; this is a same-shape-as-pixelcrash block
+ * colored via --color-text-primary (inverts cleanly if the palette
+ * ever flips to light mode). */
+.mark {
+  width: var(--space-20);
+  height: var(--space-20);
+  background: var(--color-text-primary);
+  border-radius: var(--radius-0);
+  flex: 0 0 auto;
+}
+
+.wordmark {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.center {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: center;
+  /* See .leading — pointer-events re-enabled on the cell so only the
+   * cell-picker's intrinsic width captures clicks. The empty space
+   * either side of the picker (inside .center's flex width) still
+   * falls through to PresetActions beneath. */
+  pointer-events: none;
+}
+
+.center > * {
+  pointer-events: auto;
+}
+
+.trailing {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
