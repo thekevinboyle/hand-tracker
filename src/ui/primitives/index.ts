@@ -16,3 +16,5 @@ export type { RangeSliderProps, SliderProps } from './Slider';
 export { fromProportion, RangeSlider, Slider, toProportion } from './Slider';
 export type { ToggleProps } from './Toggle';
 export { Toggle } from './Toggle';
+export type { ParamKey, ParamValue } from './useParam';
+export { useParam } from './useParam';
