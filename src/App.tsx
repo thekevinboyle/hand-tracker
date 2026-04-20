@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CameraState } from './camera/cameraState';
 import { useCamera } from './camera/useCamera';
 import { handTrackingMosaicManifest } from './effects/handTrackingMosaic';
 import type { EffectInstance } from './engine/manifest';
@@ -8,6 +9,7 @@ import { paramStore } from './engine/paramStore';
 import { reducedMotion } from './engine/reducedMotion';
 import { uploadVideoFrame } from './engine/renderer';
 import { startRenderLoop } from './engine/renderLoop';
+import { ModelLoadError, WebGLUnavailableError } from './tracking/errors';
 import { initHandLandmarker } from './tracking/handLandmarker';
 import { ErrorStates } from './ui/ErrorStates';
 import { Footer } from './ui/Footer';
@@ -18,10 +20,33 @@ import { Sidebar } from './ui/Sidebar';
 import { Stage, type StageHandle } from './ui/Stage';
 import { Toolbar } from './ui/Toolbar';
 
+/**
+ * Preflight WebGL2 probe (D23 NO_WEBGL terminal state — DR-9.2). Runs once at
+ * App mount against a detached <canvas>: if the browser cannot provide a
+ * WebGL2 context (e.g. `--disable-webgl` flag, policy block, getContext
+ * stub returning null), short-circuit to NO_WEBGL before Stage tries to
+ * create its Renderer. This surfaces the error on the dedicated card
+ * instead of crashing the useEffect in Stage.tsx. Also see
+ * `src/tracking/handLandmarker.ts` — MediaPipe init surfaces WebGL failures
+ * via `WebGLUnavailableError` which we classify in the tracker-init catch.
+ */
+function probeWebGL2(): boolean {
+  try {
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl2');
+    return gl !== null && typeof gl === 'object';
+  } catch {
+    return false;
+  }
+}
+
 export function App() {
   const { state, retry, stream } = useCamera();
   const [trackerError, setTrackerError] = useState<unknown>(null);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  // DR-9.2: preflight WebGL2 probe. Memo is stable across re-renders so
+  // the effective-state computation doesn't flap.
+  const webgl2Available = useMemo(() => probeWebGL2(), []);
   // Task 3.5: bumped whenever Stage re-creates the video Texture after a
   // `webglcontextrestored` event. The render-loop effect depends on this
   // so it tears down the current EffectInstance (whose Program's sampler
@@ -120,14 +145,30 @@ export function App() {
     };
   }, [state, videoEl, textureGen]);
 
+  // DR-9.2: classify tracker-init failures into D23 states. A
+  // `WebGLUnavailableError` from MediaPipe's GPU init or ogl's Renderer is
+  // terminal → NO_WEBGL. A `ModelLoadError` (model fetch/parse failure or
+  // both GPU+CPU failing for non-webgl reasons) → MODEL_LOAD_FAIL.
+  // `webgl2Available === false` covers the preflight case where WebGL2 is
+  // unavailable before the tracker even runs (e.g. `--disable-webgl`).
+  const effectiveState: CameraState = !webgl2Available
+    ? 'NO_WEBGL'
+    : trackerError instanceof WebGLUnavailableError
+      ? 'NO_WEBGL'
+      : trackerError instanceof ModelLoadError
+        ? 'MODEL_LOAD_FAIL'
+        : state;
+
   return (
     <main className="app-shell">
       <p data-testid="camera-state" style={{ position: 'absolute', left: -9999 }}>
-        {state}
+        {effectiveState}
       </p>
-      {state === 'PROMPT' && <PrePromptCard onAllow={retry} />}
-      {state !== 'PROMPT' && state !== 'GRANTED' && <ErrorStates state={state} onRetry={retry} />}
-      {state === 'GRANTED' && (
+      {effectiveState === 'PROMPT' && <PrePromptCard onAllow={retry} />}
+      {effectiveState !== 'PROMPT' && effectiveState !== 'GRANTED' && (
+        <ErrorStates state={effectiveState} onRetry={retry} />
+      )}
+      {effectiveState === 'GRANTED' && (
         // Task DR-8.6: new flex composition.
         //   .app-layout → column (Toolbar stacks above the body row).
         //   .app-body   → row (Stage grows to fill, Sidebar is fixed-width).

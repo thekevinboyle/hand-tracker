@@ -2,6 +2,25 @@ import '@testing-library/jest-dom/vitest';
 import 'vitest-canvas-mock';
 import { beforeEach, vi } from 'vitest';
 
+// DR-9.2: App.tsx's preflight WebGL2 probe calls `canvas.getContext('webgl2')`
+// at mount. vitest-canvas-mock only mocks 2d + WebGL1; jsdom returns null for
+// 'webgl2'. Provide a minimal truthy stub so the preflight passes in unit
+// tests — the real WebGL2 stack is exercised in Playwright E2E (including
+// Task DR-9.2's NO_WEBGL spec that stubs getContext to return null for
+// real-world negative coverage).
+const origGetContext = HTMLCanvasElement.prototype.getContext;
+HTMLCanvasElement.prototype.getContext = function patchedGetContext(
+  this: HTMLCanvasElement,
+  kind: string,
+  ...rest: unknown[]
+): unknown {
+  if (kind === 'webgl2') {
+    // Minimal object — App.probeWebGL2 only checks truthiness + typeof 'object'.
+    return {} as unknown;
+  }
+  return (origGetContext as unknown as (...a: unknown[]) => unknown).call(this, kind, ...rest);
+} as typeof HTMLCanvasElement.prototype.getContext;
+
 // Node 25+ ships a stub `globalThis.localStorage` that shadows jsdom's real
 // `Storage` implementation — `typeof localStorage === 'object'` but none of
 // the Storage methods are present. Replace it with a live Map-backed

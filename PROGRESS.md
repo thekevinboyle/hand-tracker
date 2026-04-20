@@ -1,8 +1,8 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-9 (Parent Phase-5 resume) — 1/4 DONE (DR-9.1 GitHub Actions CI pipeline SHIP); DR-9.2 (8 error-state E2E) next
-**Last updated**: 2026-04-19 (DR-9.1 SHIP)
+**Current Phase**: DR-9 (Parent Phase-5 resume) — 2/4 DONE (DR-9.2 8-state error matrix SHIP); DR-9.3 (visual-fidelity gate) next
+**Last updated**: 2026-04-19 (DR-9.2 SHIP)
 **Live URL**: https://hand-tracker-jade.vercel.app
 
 ---
@@ -20,8 +20,8 @@
 | DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
 | DR-7: Component primitives | done | 8 / 8 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + DR-7.R showcase regression — SHIP |
 | DR-8: Chrome integration | done | 8 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + PresetStrip + Tweakpane retired + Footer + DR-8.R regression (design-rework-reference.png committed) — SHIP |
-| DR-9: Parent Phase-5 resume | in-progress | 1 | 4 | DR-9.1 CI SHIP; 8 error states + visual-fidelity gate + v0.1.0 final cut pending |
-| **Total** | | **44** | **56** | parent 32 + rework 24 |
+| DR-9: Parent Phase-5 resume | in-progress | 2 | 4 | DR-9.1 CI + DR-9.2 8-state matrix SHIP; visual-fidelity gate + v0.1.0 final cut pending |
+| **Total** | | **45** | **56** | parent 32 + rework 24 |
 
 ---
 
@@ -146,7 +146,7 @@
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
 | DR-9.1 | CI: GitHub Actions (L1–L4 on PR + push) — resumes parent 5.3 | done | task/DR-9-1-github-actions-ci | 2026-04-19 | All 4 levels green in 1 Ralph iteration. `.github/workflows/ci.yml` rewritten from legacy stub to DR-9.1 contract (Node 25 quoted-string matrix, pnpm/action-setup@v4 before setup-node, pnpm store + Playwright browser + MediaPipe asset caches, fail-fast, concurrency guard, `pnpm build --mode test` L3, `if: failure()` artifact upload). `.github/workflows/e2e-preview.yml` NEW — `deployment_status` trigger guarded on `state=='success' && target_url != ''`, `PLAYWRIGHT_BASE_URL` env threaded into L4. Both YAMLs validated via `python3 -c "import yaml; yaml.safe_load(…)"` (pyyaml installed in /tmp venv). Local regression: 617/617 unit tests (41 files), 102/102 E2E (4.4 m), L1 biome + tsc clean, L3 `pnpm build --mode test` clean. No src/ changes — meta/infra only. Branch protection toggle + live first-run validation deferred to first PR push (human step). |
-| DR-9.2 | E2E for all 8 camera states (JS-level stubs) — resumes parent 5.4 | pending | | | |
+| DR-9.2 | E2E for all 8 camera states (JS-level stubs) — resumes parent 5.4 | done | task/DR-9-2-error-states-matrix | 2026-04-19 | All 4 levels green in 1 Ralph iteration. `tests/e2e/errorStates.spec.ts` renamed via `git mv` → `error-states.spec.ts` (HIGH-06); legacy 1-spec Task 1.3 file replaced with the DR-9.2 matrix — 8 describes (PROMPT, USER_DENIED, SYSTEM_DENIED, DEVICE_CONFLICT, NOT_FOUND, MODEL_LOAD_FAIL, NO_WEBGL, GRANTED). Each spec forces the state via JS-level stubs (addInitScript, context.route, grantPermissions) — no `?forceState=` URL shortcuts. Shared `unregisterSW(page)` helper guards against Task 5.1 SW cache-replay masking MODEL_LOAD_FAIL. Discovered and fixed an underlying product gap: App.tsx never transitioned to NO_WEBGL / MODEL_LOAD_FAIL — added preflight WebGL2 probe + `trackerError` classification (WebGLUnavailableError → NO_WEBGL, ModelLoadError → MODEL_LOAD_FAIL) with an `effectiveState` computation. `src/test/setup.ts` gained a minimal `getContext('webgl2')` stub so unit tests' App mount path still reaches GRANTED. Local regression: 617/617 unit tests (41 files), 109/109 E2E (4.4 m) — 102 prior − 1 retired Task 1.3 + 8 DR-9.2 = 109. SYSTEM_DENIED spec clicks through PrePromptCard because useCamera only invokes gUM after user consent when permission.state === 'prompt'. |
 | DR-9.3 | Visual-fidelity gate against `design-rework-reference.png` — resumes parent 5.5 | pending | | | |
 | DR-9.R | Final cut: v0.1.0 tag + CHANGELOG + archive TD ref — resumes parent 5.R | pending | | | |
 
