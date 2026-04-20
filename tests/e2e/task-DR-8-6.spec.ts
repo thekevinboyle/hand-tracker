@@ -79,9 +79,7 @@ test.describe('Task DR-8.6: new chrome composition — Tweakpane retired', () =>
     expect(count).toBe(1);
   });
 
-  test('layout: Toolbar + Stage + Sidebar all inside .app-layout / .app-body', async ({
-    page,
-  }) => {
+  test('layout: Toolbar + Stage + Sidebar all inside .app-layout / .app-body', async ({ page }) => {
     await grant(page);
     const layout = await page.evaluate(() => {
       const appLayout = document.querySelector('.app-layout');
