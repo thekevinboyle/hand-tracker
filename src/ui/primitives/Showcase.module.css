@@ -1,0 +1,62 @@
+/*
+ * src/ui/primitives/Showcase.module.css — dev-only showcase layout
+ * (Task DR-7.R).
+ *
+ * Minimal stacked list of sections with padding + gaps. No design polish —
+ * this is a regression fixture, not production chrome. Uses only design
+ * tokens from src/ui/tokens.css so the showcase always renders in the
+ * current palette.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-32) var(--space-24);
+}
+
+.title {
+  font-size: var(--font-size-l);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: var(--font-size-s);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-20);
+  background: var(--color-panel);
+  border-radius: var(--radius-0);
+}
+
+.heading {
+  font-size: var(--font-size-m);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+}
+
+.subheading {
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-medium);
+  margin: var(--space-08) 0 0 0;
+  color: var(--color-text-muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: center;
+}
