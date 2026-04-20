@@ -8,6 +8,8 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 export { Button } from './Button';
 export type { ColorPickerProps } from './ColorPicker';
 export { ColorPicker, normalizeHex } from './ColorPicker';
+export type { LayerCardProps, LayerSectionProps } from './LayerCard';
+export { LayerCard, LayerSection } from './LayerCard';
 export type { SegmentedOption, SegmentedProps } from './Segmented';
 export { Segmented } from './Segmented';
 export type { RangeSliderProps, SliderProps } from './Slider';

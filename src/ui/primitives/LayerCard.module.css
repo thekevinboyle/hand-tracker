@@ -1,0 +1,154 @@
+/*
+ * src/ui/primitives/LayerCard.module.css — LayerCard + LayerSection styles
+ * (Task DR-7.6).
+ *
+ * Visual recipe (direct translation of pixelcrash .layer-panel):
+ *   - Panel surface: `--color-panel`, 20px padding, 16px internal gap
+ *   - Header row: flex-row, title left + optional action+chevron right
+ *   - Divider: 1px hairline in `--color-divider` between header and body
+ *   - Body: flex column stacking `<LayerSection>` children with 12px gap
+ *
+ * Collapsible motion (pixelcrash "staggered exit"):
+ *   - max-height + gap:  `--duration-medium` (0.35s)  ← structural
+ *   - opacity on body:   `--duration-long`   (0.5s)   ← content fades slower
+ *   - chevron rotate:    `--duration-short`  (0.2s)
+ *
+ * The opacity outlasts the height collapse on purpose — content is still
+ * fading while the card has already closed. Reverses correctly on expand
+ * because the same transition durations apply to the return half.
+ *
+ * Reduced-motion: tokens.css collapses every `--duration-*` to 0s under
+ * `prefers-reduced-motion: reduce`. No per-component @media needed.
+ *
+ * Authority:
+ *   - task-DR-7-6.md § Step 3 (CSS recipe)
+ *   - `custom-param-components` skill § 3.6 — LayerCard contract
+ *   - `design-tokens-dark-palette` skill — token names
+ *   - DISCOVERY DR5 / DR11
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-20);
+  background-color: var(--color-panel);
+  border-radius: var(--radius-0);
+  overflow: hidden;
+  transition: gap var(--duration-medium) var(--ease-default);
+}
+
+.root[data-collapsed='true'] {
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-08);
+  min-height: var(--space-20);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-m);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+  color: var(--color-text-primary);
+}
+
+.headerRight {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-08);
+}
+
+.chevron {
+  width: var(--space-20);
+  height: var(--space-20);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  transition: transform var(--duration-short) var(--ease-default);
+}
+
+.chevron[data-collapsed='true'] {
+  /* ∨ becomes › — points right when collapsed. */
+  transform: rotate(-90deg);
+}
+
+.chevron:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.chevronIcon {
+  display: block;
+}
+
+.divider {
+  width: 100%;
+  height: var(--space-01);
+  background-color: var(--color-divider);
+  margin: var(--space-02) 0;
+  transition: opacity var(--duration-short) var(--ease-default);
+}
+
+.root[data-collapsed='true'] .divider {
+  opacity: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  overflow: hidden;
+  opacity: 1;
+  /* Open-state cap: any realistic content fits. CSS cannot transition
+   * between `height: auto` and a numeric value, so max-height is the
+   * canonical workaround. */
+  max-height: 9999px;
+  transition:
+    max-height var(--duration-medium) var(--ease-default),
+    opacity var(--duration-long) var(--ease-default);
+}
+
+.body[data-collapsed='true'] {
+  opacity: 0;
+  max-height: 0;
+}
+
+/* ─── LayerSection ──────────────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-08);
+  padding-bottom: var(--space-12);
+}
+
+.section[data-with-divider='true']:not(:last-child) {
+  border-bottom: var(--space-01) solid var(--color-divider);
+}
+
+.section:last-child {
+  padding-bottom: 0;
+}
+
+.sectionHeading {
+  margin: 0 0 var(--space-04) 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-m);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+  color: var(--color-text-primary);
+}
