@@ -5,46 +5,46 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  gap: 16px;
+  gap: var(--space-16);
   max-width: 480px;
   margin: 0 auto;
-  padding: 32px;
+  padding: var(--space-32);
   text-align: left;
 }
 
 .card-title {
-  font-size: 1.5rem;
+  font-size: var(--font-size-l);
   line-height: 1.2;
   margin: 0;
-  color: #fafafb;
+  color: var(--color-text-primary);
 }
 
 .card-body {
-  font-size: 1rem;
+  font-size: var(--font-size-m);
   line-height: 1.5;
   margin: 0;
-  color: #c7c7cc;
+  color: var(--color-text-muted);
 }
 
 .card-retry {
   appearance: none;
-  border: 1px solid #3a3a3c;
-  background: #1c1c1e;
-  color: #fafafb;
-  padding: 10px 18px;
-  font-size: 1rem;
-  border-radius: 6px;
+  border: 1px solid var(--color-divider);
+  background: var(--color-button-secondary-bg);
+  color: var(--color-text-primary);
+  padding: var(--space-10) var(--space-16);
+  font-size: var(--font-size-m);
+  border-radius: var(--radius-0);
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
 
 .card-retry:hover {
-  background: #2c2c2e;
-  border-color: #5a5a5c;
+  background: var(--color-button-secondary-bg-hover);
+  border-color: var(--color-text-disabled);
 }
 
 .card-retry:focus-visible {
-  outline: 2px solid #6aa9ff;
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 

@@ -1,0 +1,131 @@
+/*
+ * src/ui/tokens.css — Design tokens (Task DR-6.1).
+ *
+ * Single source of truth for every color, spacing, type, radius, and motion
+ * value in the Hand Tracker FX chrome. Consumers reference tokens via
+ * `var(--…)` only — no hardcoded hex outside this file.
+ *
+ * Authority:
+ *   - DISCOVERY.md DR5 — dark palette (hex values verbatim, UPPERCASE).
+ *   - DISCOVERY.md DR7 — JetBrains Mono + fluid root + letter-spacing.
+ *   - DISCOVERY.md DR11 — motion durations + bezier curves.
+ *   - DISCOVERY.md DR12 — soft near-neutral dark (no tinting).
+ *
+ * Sync rule: tokens.ts mirrors every key here. Edits in one must land with
+ * edits in the other in the same commit.
+ *
+ * Loading order: src/index.css imports this file as its first non-comment
+ * line so `:root { --… }` is defined before any `var(--…)` consumer.
+ */
+
+:root {
+  /* ──────────────────────────────────────────────────────────────
+   * Color — surfaces
+   * ────────────────────────────────────────────────────────────── */
+  --color-bg: #0A0A0B;
+  --color-stage-bg: #000000;
+  --color-panel: #151515;
+  --color-divider: #1F1F1F;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Color — text
+   * ────────────────────────────────────────────────────────────── */
+  --color-text-primary: #EAEAEA;
+  --color-text-muted: #8F8F8F;
+  --color-text-disabled: #6F6F6F;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Color — buttons
+   * ────────────────────────────────────────────────────────────── */
+  --color-button-primary-bg: #EAEAEA;
+  --color-button-primary-text: #0A0A0B;
+  --color-button-secondary-bg: #2A2A2A;
+  --color-button-secondary-bg-hover: #333333;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Color — segmented / toggle / slider
+   * ────────────────────────────────────────────────────────────── */
+  --color-segmented-unselected: #6F6F6F;
+  --color-segmented-selected: #EAEAEA;
+  --color-toggle-on: #EAEAEA;
+  --color-toggle-off: #4A4A4A;
+  --color-slider-track: #2A2A2A;
+  --color-slider-active: #EAEAEA;
+  --color-slider-handle: #EAEAEA;
+  --color-slider-hover: #CFCFCF;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Color — accents (retained from existing app)
+   * ────────────────────────────────────────────────────────────── */
+  --color-accent-record: #D23030;
+  --color-focus-ring: #6AA9FF;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Spacing (rem; scales against fluid root below)
+   * ────────────────────────────────────────────────────────────── */
+  --space-01: 0.1rem;
+  --space-02: 0.2rem;
+  --space-04: 0.4rem;
+  --space-06: 0.6rem;
+  --space-08: 0.8rem;
+  --space-10: 1.0rem;
+  --space-12: 1.2rem;
+  --space-16: 1.6rem;
+  --space-20: 2.0rem;
+  --space-24: 2.4rem;
+  --space-32: 3.2rem;
+  --space-44: 4.4rem;
+  --space-56: 5.6rem;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Type — family + fluid root + scale
+   *   DR-6.2 will add @font-face rules above this block; the
+   *   fallback chain keeps the string stable so DR-6.2 is a
+   *   non-breaking append.
+   * ────────────────────────────────────────────────────────────── */
+  --font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --font-size-root: clamp(13px, 0.9vw, 16px);
+  --font-size-xs: 1.15rem;
+  --font-size-s: 1.2rem;
+  --font-size-m: 1.3rem;
+  --font-size-l: 1.5rem;
+  --font-size-xl: 2rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --line-height-body: 1.4;
+  --letter-spacing-body: -0.01em;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Radius
+   *   0 at rest; pill + circle are motion-state targets only.
+   * ────────────────────────────────────────────────────────────── */
+  --radius-0: 0;
+  --radius-pill: 2.2rem;
+  --radius-circle: 50%;
+
+  /* ──────────────────────────────────────────────────────────────
+   * Motion — durations + easing
+   * ────────────────────────────────────────────────────────────── */
+  --duration-fast: 0.1s;
+  --duration-short: 0.2s;
+  --duration-medium: 0.35s;
+  --duration-long: 0.5s;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.47, 0, 0.23, 1.38);
+}
+
+/*
+ * Reduced-motion override — DR11 + parent D26.
+ * Collapses every transition duration to 0s without changing final state.
+ * Because every component references var(--duration-*), one media block
+ * disables all chrome animation at once.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0s;
+    --duration-short: 0s;
+    --duration-medium: 0s;
+    --duration-long: 0s;
+  }
+}

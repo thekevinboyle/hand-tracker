@@ -1,8 +1,10 @@
+@import "./ui/tokens.css";
+
 :root {
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  background: #0a0a0b;
-  color: #e6e6e8;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 * {
@@ -20,5 +22,5 @@ body,
 }
 
 .app-shell {
-  padding: 24px;
+  padding: var(--space-24);
 }

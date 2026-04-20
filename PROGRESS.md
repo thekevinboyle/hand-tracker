@@ -1,8 +1,8 @@
 # Hand Tracker FX — Implementation Progress
 
-**Target**: MVP matching `reference-assets/touchdesigner-reference.png`
-**Current Phase**: Phase 5 in progress (5.1 + 5.2 done); 5.3 next
-**Last updated**: 2026-04-16
+**Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
+**Current Phase**: DR-6 (design rework) — ready to start; Phase 5 paused after 5.2 and resumes as DR-9
+**Last updated**: 2026-04-20
 **Live URL**: https://hand-tracker-jade.vercel.app
 
 ---
@@ -16,8 +16,12 @@
 | 2: Engine + Overlay | done | 6 | 6 | Registry, paramStore, Tweakpane, grid, blobs, regression |
 | 3: Mosaic Shader | done | 6 | 6 | ogl mosaic inside hand-bounded polygon |
 | 4: Modulation, Presets, UX | done | 7 | 7 | X/Y modulation, presets, record, reduced-motion |
-| 5: Deploy + E2E | in-progress | 2 | 6 | Vercel live + all 8 error states + visual fidelity gate |
-| **Total** | | **0** | **32** | |
+| 5: Deploy + E2E | paused | 2 | 6 | 5.1 (SW) + 5.2 (Vercel) done. 5.3/5.4/5.5/5.R moved to DR-9.1/.2/.3/.R on top of reworked chrome. |
+| DR-6: Rework foundation | pending | 0 | 4 | Design tokens + JetBrains Mono + base reset + regression |
+| DR-7: Component primitives | pending | 0 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + showcase regression |
+| DR-8: Chrome integration | pending | 0 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + retire Tweakpane + footer + regression (captures design-rework-reference.png) |
+| DR-9: Parent Phase-5 resume | pending | 0 | 4 | CI + 8 error states + visual-fidelity gate + v0.1.0 final cut |
+| **Total** | | **34** | **56** | parent 32 + rework 24 |
 
 ---
 
@@ -75,10 +79,54 @@
 |---|---|---|---|---|---|
 | 5.1 | Service worker for /models/* and /wasm/* | done | task/5-1-service-worker | 2026-04-16 | All 4 levels green (330/330 unit tests, 47/47 E2E incl 2 new SW specs); `public/sw.js` (45 LOC, no deps, cache-first for /models/* + /wasm/* only, CACHE_NAME="hand-tracker-fx-models-v1", skipWaiting + clients.claim for first-visit control, stale-cache purge on activate). `src/registerSW.ts` gated on `PROD \|\| MODE==='test'` (expanded from task file's PROD-only gate so the Playwright MODE=test webServer can verify caching). main.tsx calls registerSW() after root.render. L4 asserts `navigator.serviceWorker.controller !== null` after reload + `PerformanceResourceTiming.transferSize === 0` for both the 7.82 MB model and at least one wasm binary. |
 | 5.2 | GitHub remote + Vercel link + first deploy | done | main (direct) | 2026-04-16 | Live at **https://hand-tracker-jade.vercel.app**. Pushed 31 local commits to `github.com/thekevinboyle/hand-tracker` (pre-existing repo reused). `vercel --prod --yes` auto-created the Vercel project + linked GitHub. First attempt blocked by 132 MB `tests/assets/fake-hand.y4m` > 100 MB Vercel per-file limit; fixed with `.vercelignore`. All 6 D31 headers verified on /, /models/*, /wasm/* via `curl -sI`. `PLAYWRIGHT_BASE_URL=<live> pnpm test:e2e --grep "Task 1.1:"` → 1/1 PASS (7.0s) confirming `crossOriginIsolated === true` on the live URL. Report: `reports/phase-5-deploy.md`. |
-| 5.3 | CI: full pipeline in GitHub Actions | pending | | | |
-| 5.4 | E2E for all 8 error states (forced failures) | pending | | | |
-| 5.5 | Visual-fidelity gate vs reference screenshot | pending | | | |
-| 5.R | Final cut: tag v0.1.0, changelog, archive | pending | | | |
+| 5.3 | CI: full pipeline in GitHub Actions | moved | | | → DR-9.1 (re-executed on reworked chrome) |
+| 5.4 | E2E for all 8 error states (forced failures) | moved | | | → DR-9.2 |
+| 5.5 | Visual-fidelity gate vs reference screenshot | moved | | | → DR-9.3 (new reference = `reports/DR-8-regression/design-rework-reference.png`) |
+| 5.R | Final cut: tag v0.1.0, changelog, archive | moved | | | → DR-9.R |
+
+### Phase DR-6: Rework Foundation (design tokens + JetBrains Mono + base reset)
+
+| Task | Title | Status | Branch | Date | Notes |
+|---|---|---|---|---|---|
+| DR-6.1 | Design tokens (CSS custom properties + TS mirror) | done | task/DR-6-1-design-tokens | 2026-04-20 | All 4 levels green in 1 Ralph iteration; `src/ui/tokens.css` + `src/ui/tokens.ts` (57 tokens: 21 color + 13 space + 11 type + 3 radius + 6 motion, plus prefers-reduced-motion override) with `cssVar()` typed helper + `satisfies Tokens`; `src/index.css` / `src/ui/Stage.css` / `src/ui/cards.css` fully token-migrated, zero hardcoded hex outside tokens.css; `@types/node` added to `tsconfig.app.json#types` so `src/ui/tokens.test.ts` can read tokens.css via `node:fs` under the `pnpm build` tsc pass. 56 new unit tests (386/386 total); 3 new E2E specs (50/50 E2E total — full Phase 1-4 regression pass in 3m 36s). E2E color assertions use a DOM-probe to resolve `var(--…)` to canonical `rgb(r, g, b)` so LightningCSS hex-shortening (`#333333` → `#333`) doesn't break the tests. |
+| DR-6.2 | Self-host JetBrains Mono (subset woff2 × 3 + @font-face + preload) | pending | | | |
+| DR-6.3 | Base reset + body baseline | pending | | | |
+| DR-6.R | Phase DR-6 regression (tokens + font live; current UI survives) | pending | | | |
+
+### Phase DR-7: Component Primitives (replaces Tweakpane)
+
+| Task | Title | Status | Branch | Date | Notes |
+|---|---|---|---|---|---|
+| DR-7.1 | Button primitive (square→pill hover) | pending | | | |
+| DR-7.2 | Segmented primitive (2/3/5 option; "/" separator) | pending | | | |
+| DR-7.3 | Slider primitive (single + range; hairline + thin thumb) | pending | | | |
+| DR-7.4 | Toggle primitive (square↔circle morph) | pending | | | |
+| DR-7.5 | ColorPicker primitive (swatch + hex input) | pending | | | |
+| DR-7.6 | LayerCard primitive (shell + collapsible + sections) | pending | | | |
+| DR-7.7 | useParam hook (paramStore bridge via useSyncExternalStore) | pending | | | |
+| DR-7.R | Phase DR-7 regression (dev-only /primitives showcase route) | pending | | | |
+
+### Phase DR-8: Chrome Integration
+
+| Task | Title | Status | Branch | Date | Notes |
+|---|---|---|---|---|---|
+| DR-8.1 | Toolbar + CellSizePicker (5 buckets → mosaic.tileSize) | pending | | | |
+| DR-8.2 | Sidebar + LayerCard1 (wires all 14 manifest params) | pending | | | |
+| DR-8.3 | ModulationCard + ModulationRow + BezierEditor | pending | | | |
+| DR-8.4 | Restyled error + pre-prompt cards (same 8 testids) | pending | | | |
+| DR-8.5 | PresetStrip (merges PresetBar + PresetActions into sidebar) | pending | | | |
+| DR-8.6 | Wire App.tsx to new chrome; retire Tweakpane (pnpm remove) | pending | | | |
+| DR-8.7 | Footer (version + credit) | pending | | | |
+| DR-8.R | Phase DR-8 regression (captures design-rework-reference.png) | pending | | | |
+
+### Phase DR-9: Parent Phase-5 Resume
+
+| Task | Title | Status | Branch | Date | Notes |
+|---|---|---|---|---|---|
+| DR-9.1 | CI: GitHub Actions (L1–L4 on PR + push) — resumes parent 5.3 | pending | | | |
+| DR-9.2 | E2E for all 8 camera states (JS-level stubs) — resumes parent 5.4 | pending | | | |
+| DR-9.3 | Visual-fidelity gate against `design-rework-reference.png` — resumes parent 5.5 | pending | | | |
+| DR-9.R | Final cut: v0.1.0 tag + CHANGELOG + archive TD ref — resumes parent 5.R | pending | | | |
 
 ---
 
