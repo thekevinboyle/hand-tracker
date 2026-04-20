@@ -1,16 +1,53 @@
 @import "./ui/tokens.css";
 
+/*
+ * src/index.css — Base reset + body baseline (Task DR-6.3).
+ *
+ * Builds on DR-6.1 (tokens.css) + DR-6.2 (self-hosted JetBrains Mono).
+ * Every font / color / spacing value flows through a `var(--*)` token —
+ * no raw hex, no raw px outside the UA reset defaults (margin/padding 0,
+ * height/width 100%).
+ *
+ * Authority:
+ *   - DISCOVERY DR5 — text #EAEAEA on #0A0A0B.
+ *   - DISCOVERY DR7 — root font-size clamp(13px, 0.9vw, 16px),
+ *     default weight 500, letter-spacing -0.01em.
+ *   - DISCOVERY DR12 — soft-dark palette needs -webkit-font-smoothing +
+ *     text-rendering: geometricPrecision for readable small monospace.
+ *
+ * Load order: tokens.css (@import above) defines every `--*` before this
+ * block consumes it. `@font-face` rules are registered inside tokens.css
+ * ABOVE its `:root {…}` block so the family is resolvable the moment we
+ * name it here.
+ *
+ * NOTE — .app-shell padding is deliberately NOT set here. DR-8.6 owns the
+ * app-shell / app-layout padding rewrite; introducing padding now would
+ * create an ambiguous pre-DR-8.6 layout (the current Stage is
+ * `position: fixed` so padding has no visible effect anyway).
+ */
+
 :root {
   color-scheme: dark;
-  /* DR-6.2 — resolve via --font-family so JetBrains Mono (registered above
-   * this block in tokens.css) becomes the site-wide default. DR-6.3 will
-   * layer in body font-weight / letter-spacing / fluid root on top. */
+
+  /* DR7 — fluid root type sets the rem base for the entire token system. */
   font-family: var(--font-family);
-  background: var(--color-bg);
+  font-size: var(--font-size-root);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-body);
+  letter-spacing: var(--letter-spacing-body);
+
+  /* DR5 — soft-dark page palette. */
   color: var(--color-text-primary);
+  background: var(--color-bg);
+
+  /* DR12 — crisp monospace on macOS; safe no-ops elsewhere. */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -24,6 +61,17 @@ body,
   overflow: hidden;
 }
 
-.app-shell {
-  padding: var(--space-24);
+/*
+ * `font: inherit` on body would reset line-height to the UA default on
+ * some browsers that treat the shorthand strictly — declare each property
+ * explicitly so body mirrors :root without surprises.
+ */
+body {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: inherit;
 }
