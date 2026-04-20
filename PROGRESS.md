@@ -1,8 +1,8 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-9 (Parent Phase-5 resume) — 2/4 DONE (DR-9.2 8-state error matrix SHIP); DR-9.3 (visual-fidelity gate) next
-**Last updated**: 2026-04-19 (DR-9.2 SHIP)
+**Current Phase**: DR-9 (Parent Phase-5 resume) — 3/4 DONE (DR-9.3 visual-fidelity gate SHIP); DR-9.R (v0.1.0 final cut) next
+**Last updated**: 2026-04-19 (DR-9.3 SHIP)
 **Live URL**: https://hand-tracker-jade.vercel.app
 
 ---
@@ -20,7 +20,7 @@
 | DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
 | DR-7: Component primitives | done | 8 / 8 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + DR-7.R showcase regression — SHIP |
 | DR-8: Chrome integration | done | 8 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + PresetStrip + Tweakpane retired + Footer + DR-8.R regression (design-rework-reference.png committed) — SHIP |
-| DR-9: Parent Phase-5 resume | in-progress | 2 | 4 | DR-9.1 CI + DR-9.2 8-state matrix SHIP; visual-fidelity gate + v0.1.0 final cut pending |
+| DR-9: Parent Phase-5 resume | in-progress | 3 | 4 | DR-9.1 CI + DR-9.2 8-state matrix + DR-9.3 visual-fidelity gate SHIP; v0.1.0 final cut pending |
 | **Total** | | **45** | **56** | parent 32 + rework 24 |
 
 ---
@@ -81,7 +81,7 @@
 | 5.2 | GitHub remote + Vercel link + first deploy | done | main (direct) | 2026-04-16 | Live at **https://hand-tracker-jade.vercel.app**. Pushed 31 local commits to `github.com/thekevinboyle/hand-tracker` (pre-existing repo reused). `vercel --prod --yes` auto-created the Vercel project + linked GitHub. First attempt blocked by 132 MB `tests/assets/fake-hand.y4m` > 100 MB Vercel per-file limit; fixed with `.vercelignore`. All 6 D31 headers verified on /, /models/*, /wasm/* via `curl -sI`. `PLAYWRIGHT_BASE_URL=<live> pnpm test:e2e --grep "Task 1.1:"` → 1/1 PASS (7.0s) confirming `crossOriginIsolated === true` on the live URL. Report: `reports/phase-5-deploy.md`. |
 | 5.3 | CI: full pipeline in GitHub Actions | moved | | | → DR-9.1 (re-executed on reworked chrome) |
 | 5.4 | E2E for all 8 error states (forced failures) | moved | | | → DR-9.2 |
-| 5.5 | Visual-fidelity gate vs reference screenshot | moved | | | → DR-9.3 (new reference = `reports/DR-8-regression/design-rework-reference.png`) |
+| 5.5 | Visual-fidelity gate vs reference screenshot | done (via DR-9.3) | | 2026-04-19 | → DR-9.3: automated `toMatchSnapshot` at 1440×900 against `reports/DR-8-regression/design-rework-reference.png` (chrome-only mask, 2% threshold). |
 | 5.R | Final cut: tag v0.1.0, changelog, archive | moved | | | → DR-9.R |
 
 ### Phase DR-6: Rework Foundation (design tokens + JetBrains Mono + base reset)
@@ -147,7 +147,7 @@
 |---|---|---|---|---|---|
 | DR-9.1 | CI: GitHub Actions (L1–L4 on PR + push) — resumes parent 5.3 | done | task/DR-9-1-github-actions-ci | 2026-04-19 | All 4 levels green in 1 Ralph iteration. `.github/workflows/ci.yml` rewritten from legacy stub to DR-9.1 contract (Node 25 quoted-string matrix, pnpm/action-setup@v4 before setup-node, pnpm store + Playwright browser + MediaPipe asset caches, fail-fast, concurrency guard, `pnpm build --mode test` L3, `if: failure()` artifact upload). `.github/workflows/e2e-preview.yml` NEW — `deployment_status` trigger guarded on `state=='success' && target_url != ''`, `PLAYWRIGHT_BASE_URL` env threaded into L4. Both YAMLs validated via `python3 -c "import yaml; yaml.safe_load(…)"` (pyyaml installed in /tmp venv). Local regression: 617/617 unit tests (41 files), 102/102 E2E (4.4 m), L1 biome + tsc clean, L3 `pnpm build --mode test` clean. No src/ changes — meta/infra only. Branch protection toggle + live first-run validation deferred to first PR push (human step). |
 | DR-9.2 | E2E for all 8 camera states (JS-level stubs) — resumes parent 5.4 | done | task/DR-9-2-error-states-matrix | 2026-04-19 | All 4 levels green in 1 Ralph iteration. `tests/e2e/errorStates.spec.ts` renamed via `git mv` → `error-states.spec.ts` (HIGH-06); legacy 1-spec Task 1.3 file replaced with the DR-9.2 matrix — 8 describes (PROMPT, USER_DENIED, SYSTEM_DENIED, DEVICE_CONFLICT, NOT_FOUND, MODEL_LOAD_FAIL, NO_WEBGL, GRANTED). Each spec forces the state via JS-level stubs (addInitScript, context.route, grantPermissions) — no `?forceState=` URL shortcuts. Shared `unregisterSW(page)` helper guards against Task 5.1 SW cache-replay masking MODEL_LOAD_FAIL. Discovered and fixed an underlying product gap: App.tsx never transitioned to NO_WEBGL / MODEL_LOAD_FAIL — added preflight WebGL2 probe + `trackerError` classification (WebGLUnavailableError → NO_WEBGL, ModelLoadError → MODEL_LOAD_FAIL) with an `effectiveState` computation. `src/test/setup.ts` gained a minimal `getContext('webgl2')` stub so unit tests' App mount path still reaches GRANTED. Local regression: 617/617 unit tests (41 files), 109/109 E2E (4.4 m) — 102 prior − 1 retired Task 1.3 + 8 DR-9.2 = 109. SYSTEM_DENIED spec clicks through PrePromptCard because useCamera only invokes gUM after user consent when permission.state === 'prompt'. |
-| DR-9.3 | Visual-fidelity gate against `design-rework-reference.png` — resumes parent 5.5 | pending | | | |
+| DR-9.3 | Visual-fidelity gate against `design-rework-reference.png` — resumes parent 5.5 | done | `task/DR-9-3-visual-fidelity-gate` | 2026-04-19 | Chrome-only diff (stage masked for landmark determinism); `toMatchSnapshot` + `snapshotPathTemplate` routed to `reports/DR-8-regression/`; 1440×900 @ 2% threshold; 110/110 E2E. Also trimmed DR-8.R step 02 to no longer overwrite the reference (DR-9.3 now owns it via `--update-snapshots` protocol). |
 | DR-9.R | Final cut: v0.1.0 tag + CHANGELOG + archive TD ref — resumes parent 5.R | pending | | | |
 
 ---

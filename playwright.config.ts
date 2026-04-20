@@ -12,6 +12,20 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? [['github'], ['html']] : 'list',
+  // Task DR-9.3: route visual-fidelity snapshots to the committed DR-8.R
+  // reference under reports/DR-8-regression/. Placeholders:
+  //   {testDir} = tests/e2e (the testDir config value, absolute path)
+  //   {arg}     = the name passed to toMatchSnapshot()
+  //   {ext}     = .png (auto-appended by Playwright)
+  // `{testDir}/..` = tests/, so `{testDir}/../..` = the repo root. The full
+  // template therefore resolves toMatchSnapshot('design-rework-reference.png')
+  // to <repo>/reports/DR-8-regression/design-rework-reference.png — the
+  // committed reference — NOT a test-file-scoped *-snapshots/ file. Other
+  // specs that call toMatchSnapshot with a plain name (e.g. 'foo.png') would
+  // now resolve under reports/DR-8-regression/; today no other spec does so.
+  // If a future spec needs the default convention, scope this template via a
+  // dedicated project or prefix {arg} paths (toMatchSnapshot('sub/foo.png')).
+  snapshotPathTemplate: '{testDir}/../../reports/DR-8-regression/{arg}{ext}',
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:4173',
     trace: 'on-first-retry',

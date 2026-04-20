@@ -37,7 +37,11 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 const SHOT_DIR = 'reports/DR-8-regression';
-const REFERENCE_PATH = path.join(SHOT_DIR, 'design-rework-reference.png');
+// The canonical visual-fidelity reference at
+// `reports/DR-8-regression/design-rework-reference.png` is OWNED by
+// tests/e2e/visual-fidelity.spec.ts (Task DR-9.3). DR-8.R used to rewrite
+// it on step 02; that clobbered DR-9.3's masked chrome-only variant and
+// broke the aggregate E2E run, so step 02 no longer touches that file.
 
 interface EngineHook {
   getParam?: (dotPath: string) => unknown;
@@ -158,14 +162,11 @@ test.describe('Task DR-8.R: Phase DR-8 regression — full user journey + refere
       });
       await page.waitForTimeout(800);
 
-      // Per-step walkthrough frame + the canonical reference in one pass.
-      // `animations: 'disabled'` holds any in-flight transitions (chevron
-      // rotate, focus-ring) so the diff target is byte-stable across CI.
-      await page.screenshot({
-        path: REFERENCE_PATH,
-        fullPage: false,
-        animations: 'disabled',
-      });
+      // Per-step walkthrough frame only (step-02.png). The canonical
+      // visual-fidelity reference at
+      // reports/DR-8-regression/design-rework-reference.png is OWNED by
+      // tests/e2e/visual-fidelity.spec.ts (Task DR-9.3) — see the comment
+      // block at the top of this spec for the rationale.
       await stepShot(page, 2);
     });
 
