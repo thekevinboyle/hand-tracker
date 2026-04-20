@@ -1,7 +1,7 @@
 # Hand Tracker FX — Implementation Progress
 
 **Target**: MVP matching `reference-assets/touchdesigner-reference.png` (parent Phases 1–4) + pixelcrash-inspired chrome rework (Phases DR-6 through DR-9)
-**Current Phase**: DR-6 (design rework) — DR-6.{1,2,3,R} all done; Phase DR-7 primitives next; Phase 5 paused after 5.2 and resumes as DR-9
+**Current Phase**: DR-7 (primitives) — DR-7.1 Button done; DR-7.2 Segmented next; Phase 5 paused after 5.2 and resumes as DR-9
 **Last updated**: 2026-04-20
 **Live URL**: https://hand-tracker-jade.vercel.app
 
@@ -18,10 +18,10 @@
 | 4: Modulation, Presets, UX | done | 7 | 7 | X/Y modulation, presets, record, reduced-motion |
 | 5: Deploy + E2E | paused | 2 | 6 | 5.1 (SW) + 5.2 (Vercel) done. 5.3/5.4/5.5/5.R moved to DR-9.1/.2/.3/.R on top of reworked chrome. |
 | DR-6: Rework foundation | done | 4 | 4 | Design tokens + JetBrains Mono + base reset + regression — SHIP |
-| DR-7: Component primitives | pending | 0 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + showcase regression |
+| DR-7: Component primitives | in-progress | 1 / 8 | 8 | Button / Segmented / Slider / Toggle / ColorPicker / LayerCard / useParam + showcase regression |
 | DR-8: Chrome integration | pending | 0 | 8 | Toolbar + Sidebar + LayerCard1 + ModulationCard + restyled errors + retire Tweakpane + footer + regression (captures design-rework-reference.png) |
 | DR-9: Parent Phase-5 resume | pending | 0 | 4 | CI + 8 error states + visual-fidelity gate + v0.1.0 final cut |
-| **Total** | | **34** | **56** | parent 32 + rework 24 |
+| **Total** | | **35** | **56** | parent 32 + rework 24 |
 
 ---
 
@@ -97,7 +97,7 @@
 
 | Task | Title | Status | Branch | Date | Notes |
 |---|---|---|---|---|---|
-| DR-7.1 | Button primitive (square→pill hover) | pending | | | |
+| DR-7.1 | Button primitive (square→pill hover) | done | task/DR-7-1-button-primitive | 2026-04-20 | All 4 levels green in 1 Ralph iteration; `src/ui/primitives/Button.tsx` (forwardRef, variants primary/secondary/text/icon, sizes sm/md, default `data-testid=button-${variant}` overridable via `testid`, default `type="button"`); `src/ui/primitives/Button.module.css` (square→pill hover via `::before` pseudo; staggered `border-radius var(--duration-short)` + `background-color … 0.1s` delay; variants branch via `data-variant` attr; reduced-motion inherited from global `@media` override on `--duration-*` — no per-component media query); `src/ui/primitives/index.ts` barrel. 12 new unit tests (406/406 total across 28 files). 63/63 existing E2E specs still green (3.8 m). **Note:** task file Step L4 says `pnpm test:e2e --grep "Task DR-7.1:"` MUST exit 0 with "No tests found" — Playwright actually exits 1 in this scenario regardless of whether the no-match is benign. Vendor behavior; full-suite run (63 / 63 green) is the authoritative regression gate. |
 | DR-7.2 | Segmented primitive (2/3/5 option; "/" separator) | pending | | | |
 | DR-7.3 | Slider primitive (single + range; hairline + thin thumb) | pending | | | |
 | DR-7.4 | Toggle primitive (square↔circle morph) | pending | | | |
